@@ -18,6 +18,13 @@ class Database {
                 PDO::ATTR_EMULATE_PREPARES   => false,
             ];
 
+            // SSL para MySQL en la nube (Aiven). Solo se activa si DB_SSL=1,
+            // así el docker-compose local sigue funcionando sin SSL.
+            if (getenv('DB_SSL') === '1') {
+                $options[PDO::MYSQL_ATTR_SSL_CA] = '/etc/ssl/certs/ca-certificates.crt';
+                $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = false;
+            }
+
             try {
                 self::$instance = new PDO($dsn, $user, $pass, $options);
             } catch (PDOException $e) {
