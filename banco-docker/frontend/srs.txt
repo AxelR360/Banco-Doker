@@ -1,0 +1,502 @@
+﻿PAGINAS 15
+ 
+ 
+UNIVERSIDAD T╔CNICA LUIS VARGAS TORRES DE 
+ESMERALDAS  
+FACULTAD: FACI  
+CARRERA: TIC  
+ESPECIFICACIËN DE REQUISITOS DE SOFTWARE  
+Sistema de Gesti¾n Bancaria Digital  
+Seg·n la norma IEEE Std 830 -1998  
+Grupo #4  
+Integrantes:  
+Rosero Axel  
+Caicedo Melany  
+Solis Jordan  
+Gonzalez Thaiz  
+Garcia Antonella  
+Asignatura: Programaci¾n V  
+Docente: Fabißn Caicedo  
+Esmeraldas, Ecuador  
+Versi¾n 1.0 | Noviembre de 2026  
+ 
+
+SRS û Sistema de Gesti¾n Bancaria Digital | IEEE 830  
+Universidad TÚcnica Luis Vargas Torres de Esmeraldas û Grupo #4 û Pßgina 1 Control de versiones  
+Versi¾n  Fecha  Descripci¾n  
+1.0 Noviembre 2026  Primera versi¾n de la especificaci¾n  
+ 
+Tabla de contenido  
+Control de versiones  ................................ ................................ ................................ ..................  1 
+Tabla de contenido  ................................ ................................ ................................ .....................  1 
+1. Introducci¾n  ................................ ................................ ................................ ...........................  3 
+1.1 Prop¾sito  ................................ ................................ ................................ ..........................  3 
+1.2 Alcance  ................................ ................................ ................................ ............................  3 
+1.2.1 Objetivo general  ................................ ................................ ................................ ........  3 
+1.2.2 Objetivos especÝficos  ................................ ................................ ................................  3 
+1.3 Definiciones, acr¾nimos y abreviaturas  ................................ ................................ ...........  3 
+1.4 Referencias  ................................ ................................ ................................ .......................  4 
+1.5 Visi¾n general del documento  ................................ ................................ .........................  4 
+2. Descripci¾n general  ................................ ................................ ................................ ...............  4 
+2.1 Perspectiva del producto  ................................ ................................ ................................ .. 4 
+2.1.1 Arquitectura l¾gica ................................ ................................ ................................ .... 4 
+2.1.2 Contenedores previstos  ................................ ................................ .............................  4 
+2.1.3 Flujo de autenticaci¾n  ................................ ................................ ...............................  5 
+2.2 Funciones del producto  ................................ ................................ ................................ .... 5 
+2.3 CaracterÝsticas de los usuarios  ................................ ................................ .........................  5 
+2.4 Restricciones  ................................ ................................ ................................ ....................  6 
+2.5 Suposiciones y dependencias  ................................ ................................ ...........................  6 
+2.6 Distribuci¾n de requisitos (fuera del alcance)  ................................ ................................ . 6 
+3. Requisitos especÝficos  ................................ ................................ ................................ ............  6 
+3.1 Interfaces externas  ................................ ................................ ................................ ...........  6 
+3.1.1 Interfaz de usuario ................................ ................................ ................................ ..... 6 
+3.1.2 Interfaces de software  ................................ ................................ ...............................  6 
+3.1.3 Interfaces de comunicaci¾n ................................ ................................ .......................  7 
+3.1.4 Dise±o de APIs REST  ................................ ................................ ...............................  7 
+3.2 Requisitos funcionales  ................................ ................................ ................................ ..... 8 
+3.2.1 Casos de uso  ................................ ................................ ................................ ..............  9 
+CU-01: Inicio de sesi¾n  ................................ ................................ ................................ ..... 9 
+CU-02: Transferencia simulada  ................................ ................................ .........................  9 
+SRS û Sistema de Gesti¾n Bancaria Digital | IEEE 830  
+Universidad TÚcnica Luis Vargas Torres de Esmeraldas û Grupo #4 û Pßgina 2 CU-03: Solicitud de prÚstamo  ................................ ................................ ............................  9 
+3.3 Requisitos de rendimiento ................................ ................................ ................................  9 
+3.4 Requisitos l¾gicos de la base de datos  ................................ ................................ ...........  10 
+3.5 Restricciones de dise±o  ................................ ................................ ................................ .. 10 
+3.6 Atributos del sistema (requisitos no funcionales)  ................................ ..........................  10 
+3.7 Reglas de negocio  ................................ ................................ ................................ ..........  11 
+4. Informaci¾n de soporte  ................................ ................................ ................................ ........  11 
+4.1 Criterios de aceptaci¾n  ................................ ................................ ................................ ... 11 
+4.2 Plan de pruebas  ................................ ................................ ................................ ..............  12 
+4.3 Riesgos y mitigaci¾n  ................................ ................................ ................................ ...... 12 
+4.4 Organizaci¾n sugerida del equipo  ................................ ................................ ..................  12 
+ApÚndices  ................................ ................................ ................................ ................................ . 13 
+ApÚndice A. Modelo entidad -relaci¾n textual  ................................ ................................ ..... 13 
+ApÚndice B. Estados permitidos  ................................ ................................ ..........................  13 
+ApÚndice C. Consideraciones de seguridad  ................................ ................................ .........  13 
+ApÚndice D. Aprobaci¾n  ................................ ................................ ................................ ..... 14 
+ 
+ 
+SRS û Sistema de Gesti¾n Bancaria Digital | IEEE 830  
+Universidad TÚcnica Luis Vargas Torres de Esmeraldas û Grupo #4 û Pßgina 3 1. Introducci¾n  
+Este documento sigue la estructura recomendada por la norma IEEE Std 830 -1998 para la 
+Especificaci¾n de Requisitos de Software (SRS).  
+1.1 Prop¾sito  
+Este documento especifica los requisitos funcionales, no funcionales, interfaces, restricciones 
+y criterios de aceptaci¾n del Sistema de Gesti¾n Bancaria Digital del Grupo #4. Estß dirigido 
+al equipo de desarrollo, docente, evaluadores y usuarios de prueba . 
+1.2 Alcance  
+Aplicaci¾n web acadÚmica para simular operaciones bancarias. Administrarß clientes, 
+usuarios, cuentas, movimientos, tarjetas ficticias y solicitudes de prÚstamos. Expondrß APIs 
+REST y se ejecutarß con Docker.  
+El producto no se conectarß con Banco Pichincha ni con entidades financieras reales, no 
+procesarß dinero real ni almacenarß credenciales, PIN, CVV o n·meros completos de tarjetas.  
+1.2.1 Objetivo general  
+Desarrollar un sistema web bancario simulado, modular y seguro que permita administrar las 
+principales entidades y operaciones bancarias.  
+1.2.2 Objetivos especÝficos  
+ò Dise±ar una base de datos relacional MySQL.  
+ò Desarrollar backend PHP y frontend JavaScript.  
+ò Integrar autenticaci¾n y roles mediante Keycloak.  
+ò Publicar APIs REST documentadas.  
+ò Configurar Nginx y Docker Compose.  
+ò Aplicar controles de seguridad y pruebas.  
+1.3 Definiciones, acr¾nimos y abreviaturas  
+TÚrmino  Definici¾n  
+SRS Software Requirements Specification  
+API Interfaz de programaci¾n de aplicaciones  
+REST  Estilo arquitect¾nico para servicios web  
+CRUD  Crear, leer, actualizar y eliminar  
+JWT JSON Web Token  
+RBAC  Control de acceso basado en roles  
+OIDC  OpenID Connect  
+HTTPS  HTTP cifrado mediante TLS  
+ 
+SRS û Sistema de Gesti¾n Bancaria Digital | IEEE 830  
+Universidad TÚcnica Luis Vargas Torres de Esmeraldas û Grupo #4 û Pßgina 4 1.4 Referencias  
+ò IEEE Std  830-1998, Recommended Practice for Software Requirements Specifications.  
+ò PHP: https://www.php.net/docs.php  
+ò MySQL: https://dev.mysql.com/doc/  
+ò Docker: https://docs.docker.com/  
+ò Keycloak: https://www.keycloak.org/documentation  
+ò Nginx: https://nginx.org/en/docs/  
+1.5 Visi¾n general del documento  
+La secci¾n 2 presenta la descripci¾n general del producto: perspectiva, funciones, usuarios, 
+restricciones, suposiciones y arquitectura. La secci¾n 3 contiene los requisitos especÝficos 
+(interfaces externas, funciones, rendimiento, base de datos, restricci ones de dise±o, atributos 
+del sistema, casos de uso y reglas de negocio). La secci¾n 4 re·ne la informaci¾n de soporte: 
+criterios de aceptaci¾n, plan de pruebas, riesgos, organizaci¾n del equipo y anexos.  
+2. Descripci¾n general  
+2.1 Perspectiva del producto  
+Aplicaci¾n web cliente -servidor. El navegador consume APIs REST; Nginx recibe las 
+solicitudes; Keycloak autentica usuarios; PHP ejecuta reglas de negocio; MySQL almacena los 
+datos.  
+Tabla 1. Componentes del sistema  
+Componente  Responsabilidad  
+Frontend JavaScript  Interfaz y consumo de API  
+PHP Reglas de negocio y endpoints REST  
+Nginx  Servidor web/proxy inverso  
+Keycloak  Identidad, login y roles  
+MySQL  Persistencia relacional  
+Docker Compose  Orquestaci¾n local  
+ 
+2.1.1 Arquitectura l¾gica  
+El sistema seguirß una arquitectura por capas: presentaci¾n (JavaScript), API/controladores 
+PHP, servicios de negocio, repositorios/DAO y MySQL. Keycloak serß un servicio de 
+identidad independiente y Nginx serß el punto de entrada.  
+2.1.2 Contenedores previstos  
+Tabla 2. Contenedores del despliegue  
+Servicio  Contenedor/imagen sugerida  Funci¾n  
+nginx  nginx:stable  Proxy y servidor web  
+SRS û Sistema de Gesti¾n Bancaria Digital | IEEE 830  
+Universidad TÚcnica Luis Vargas Torres de Esmeraldas û Grupo #4 û Pßgina 5 Servicio  Contenedor/imagen sugerida  Funci¾n  
+php-api PHP-FPM con extensiones PDO 
+MySQL  Backend REST  
+mysql  mysql:8.0  Base de datos  
+keycloak  keycloak oficial  IAM/OIDC  
+frontend  Nginx o servidor estßtico  Archivos JavaScript/HTML/CSS  
+ 
+Las versiones exactas se fijarßn en el archivo Docker Compose del proyecto. Las contrase±as, 
+secretos y claves de producci¾n no deberßn incluirse en el repositorio.  
+2.1.3 Flujo de autenticaci¾n  
+1. El usuario inicia sesi¾n en Keycloak.  
+2. Keycloak autentica y emite tokens OIDC/JWT.  
+3. El frontend obtiene el token siguiendo el flujo recomendado para aplicaci¾n p·blica 
+(Authorization Code + PKCE).  
+4. El frontend envÝa el access token en Authorization: Bearer.  
+5. El backend valida firma, issuer, audience, expiraci¾n y roles; no acepta tokens sin 
+validar.  
+6. El backend aplica ademßs autorizaci¾n por recurso, por ejemplo, que la cuenta 
+pertenezca al cliente.  
+2.2 Funciones del producto  
+ò Administraci¾n de clientes.  
+ò Gesti¾n de usuarios y roles.  
+ò Apertura y consulta de cuentas.  
+ò Dep¾sitos, retiros y transferencias simuladas.  
+ò Consulta de historial de movimientos.  
+ò Gesti¾n de tarjetas ficticias y bloqueo.  
+ò Registro y seguimiento de prÚstamos simulados.  
+ò Panel de administraci¾n y reportes bßsicos.  
+2.3 CaracterÝsticas de los usuarios  
+Tabla 3. Actores del sistema  
+Actor  Descripci¾n  Permisos principales  
+Administrador  Administra la plataforma  Gesti¾n global y configuraci¾n  
+Asesor  Atiende clientes  Consultar clientes/cuentas y gestionar 
+solicitudes seg·n permisos  
+Cliente  Usuario final  Acceder solo a sus propios datos y 
+operaciones permitidas  
+SRS û Sistema de Gesti¾n Bancaria Digital | IEEE 830  
+Universidad TÚcnica Luis Vargas Torres de Esmeraldas û Grupo #4 û Pßgina 6  
+2.4 Restricciones  
+ò PHP para backend, JavaScript para frontend y MySQL como base de datos.  
+ò Nginx como servido r/proxy; Keycloak para identidad.  
+ò Docker Desktop y Docker Compose para desarrollo local.  
+ò API REST con JSON y HTTPS en despliegues no locales.  
+ò Datos de prueba ficticios; no usar informaci¾n bancaria real.  
+2.5 Suposiciones y dependencias  
+ò Equipo con Docker Desktop y virtualizaci¾n habilitada.  
+ò Conectividad local entre contenedores.  
+ò Keycloak tendrß realm, clientes y roles configurados.  
+ò MySQL 8 o versi¾n compatible.  
+ò Navegador actualizado.  
+2.6 Distribuci¾n de requisitos (fuera del alcance)  
+Los siguientes elementos quedan fuera de esta versi¾n del producto:  
+ò Pagos y transferencias reales.  
+ò Conexi¾n a redes bancarias, tarjetas o bur¾s de crÚdito.  
+ò Aprobaci¾n crediticia real.  
+ò Aplicaci¾n m¾vil nativa y producci¾n comercial.  
+ò Cumplimiento de certificaciones bancarias de producci¾n.  
+3. Requisitos especÝficos  
+Los requisitos se identifican con c¾digos ·nicos y se redactan de forma verificable. Prioridad: 
+Alta, Media o Baja.  
+3.1 Interfaces externas  
+3.1.1 Interfaz de usuario  
+ò IU-01: La aplicaci¾n deberß mostrar una pantalla de inicio de sesi¾n administrada por 
+Keycloak.  
+ò IU-02: La interfaz deberß presentar navegaci¾n seg·n el rol autenticado.  
+ò IU-03: Los formularios deberßn validar campos obligatorios y formatos.  
+ò IU-04: Las operaciones deberßn mostrar mensajes claros de Úxito o error.  
+ò IU-05: La interfaz deberß adaptarse a resoluciones de escritorio y m¾vil.  
+3.1.2 Interfaces de software  
+ò IS-01: El frontend consumirß endpoints REST PHP usando JSON.  
+SRS û Sistema de Gesti¾n Bancaria Digital | IEEE 830  
+Universidad TÚcnica Luis Vargas Torres de Esmeraldas û Grupo #4 û Pßgina 7 ò IS-02: PHP accederß a MySQL mediante PDO y consultas preparadas.  
+ò IS-03: La autenticaci¾n se integrarß con Keycloak mediante OIDC.  
+ò IS-04: Nginx dirigirß las solicitudes al frontend/backend seg·n la configuraci¾n.  
+3.1.3 Interfaces de comunicaci¾n  
+ò IC-01: Las APIs usarßn HTTP en entorno local y HTTPS en despliegue seguro.  
+ò IC-02: Los endpoints devolverßn JSON y c¾digos HTTP apropiados.  
+ò IC-03: Las APIs autenticadas exigirßn un token vßlido.  
+3.1.4 Dise±o de APIs REST  
+Tabla 4. Endpoints REST propuestos  
+MÚtodo  Endpoint propuesto  Descripci¾n  Rol 
+POST  /api/v1/clientes  Crear cliente  ADMIN/ASESOR  
+GET /api/v1/clientes  Listar/buscar clientes  ADMIN/ASESOR  
+GET /api/v1/clientes/{id}  Consultar cliente  ADMIN/ASESOR; 
+cliente solo propio  
+POST  /api/v1/cuentas  Crear cuenta  ADMIN/ASESOR  
+GET /api/v1/cuentas/mias  Consultar cuentas 
+propias  CLIENTE  
+GET /api/v1/cuentas/{id}  Consultar cuenta  Propietario o rol 
+autorizado  
+POST  /api/v1/movimientos/deposito  Dep¾sito ficticio  ADMIN/ASESOR  
+POST  /api/v1/movimientos/retiro  Retiro ficticio  Usuario autorizado  
+POST  /api/v1/movimientos/transferencia  Transferencia ficticia  Cliente autorizado  
+GET /api/v1/cuentas/{id}/movimientos  Historial  Propietario o rol 
+autorizado  
+POST  /api/v1/prestamos  Solicitar prÚstamo 
+simulado  CLIENTE  
+PATCH  /api/v1/prestamos/{id}/estado  Cambiar estado de 
+solicitud  ADMIN/ASESOR  
+PATCH  /api/v1/tarjetas/{id}/estado  Bloquear tarjeta ficticia  Propietario o rol 
+autorizado  
+ 
+Formato de respuesta exitoso (ejemplo):  
+{ 
+  "success": true,  
+  "data": {},  
+  "message": "Operaci¾n realizada correctamente"  
+} 
+Errores: utilizar c¾digos HTTP apropiados (400 validaci¾n, 401 no autenticado, 403 sin 
+permisos, 404 no encontrado, 409 conflicto, 500 error interno). No devolver trazas ni secretos 
+al cliente.  
+SRS û Sistema de Gesti¾n Bancaria Digital | IEEE 830  
+Universidad TÚcnica Luis Vargas Torres de Esmeraldas û Grupo #4 û Pßgina 8 3.2 Requisitos funcionales  
+Tabla 5. Requisitos funcionales  
+ID Requisito  Descripci¾n  Prioridad  
+RF-01 Registrar clientes  El sistema permitirß al administrador o asesor 
+registrar clientes con identificaci¾n, nombres, 
+apellidos y correo. Validarß campos obligatorios y 
+unicidad.  Alta 
+RF-02 Consultar clientes  El sistema permitirß buscar y consultar clientes seg·n 
+permisos.  Alta 
+RF-03 Actualizar clientes  El sistema permitirß modificar datos no sensibles del 
+cliente.  Media  
+RF-04 Gestionar usuarios  El administrador podrß asociar usuarios de Keycloak 
+con perfiles locales y asignar roles autorizados.  Alta 
+RF-05 Autenticaci¾n  El sistema delegarß inicio de sesi¾n y gesti¾n de 
+credenciales en Keycloak.  Alta 
+RF-06 Control de acceso  El sistema verificarß rol y propiedad de los recursos 
+en cada endpoint protegido.  Alta 
+RF-07 Crear cuenta  El administrador o asesor autorizado podrß crear una 
+cuenta para un cliente activo.  Alta 
+RF-08 Consultar cuentas  El cliente podrß consultar ·nicamente sus cuentas; el 
+asesor/admin seg·n permisos.  Alta 
+RF-09 Dep¾sito simulado  El sistema permitirß registrar un dep¾sito ficticio, 
+actualizar saldo y crear movimiento dentro de una 
+transacci¾n SQL.  Alta 
+RF-10 Retiro simulado  El sistema permitirß retirar fondos si la cuenta estß 
+activa y el saldo es suficiente.  Alta 
+RF-11 Transferencia 
+simulada  El sistema transferirß entre cuentas activas en una 
+transacci¾n at¾mica, verificando saldo, moneda y 
+titularidad/permisos.  Alta 
+RF-12 Historial  El sistema mostrarß movimientos por cuenta con 
+filtros y paginaci¾n.  Alta 
+RF-13 Tarjetas  El sistema permitirß emitir tarjetas ficticias, consultar 
+estado y bloquear/desbloquear seg·n rol.  Media  
+RF-14 PrÚstamos  El cliente podrß solicitar un prÚstamo simulado 
+indicando monto y plazo.  Media  
+RF-15 Evaluar prÚstamo  El asesor/admin podrß marcar solicitud en revisi¾n, 
+aprobada o rechazada; la decisi¾n serß simulada.  Media  
+RF-16 Reportes  El administrador podrß consultar reportes agregados 
+de clientes, cuentas y movimientos.  Baja 
+RF-17 Cerrar sesi¾n  El usuario podrß cerrar sesi¾n mediante el flujo de 
+Keycloak y eliminar tokens de la sesi¾n del cliente.  Alta 
+ 
+SRS û Sistema de Gesti¾n Bancaria Digital | IEEE 830  
+Universidad TÚcnica Luis Vargas Torres de Esmeraldas û Grupo #4 û Pßgina 9 3.2.1 Casos de uso  
+CU-01: Inicio de sesi¾n  
+Elemento  Descripci¾n  
+Actor  Cliente, asesor o administrador  
+Precondici¾n  Usuario registrado en Keycloak y habilitado  
+Flujo  1. Abre aplicaci¾n.  
+2. Es redirigido a Keycloak.  
+3. Ingresa credenciales.  
+4. Keycloak autentica.  
+5. Se redirige al sistema con sesi¾n/token.  
+Alternativa  Credenciales incorrectas: Keycloak  muestra error; no se permite acceso.  
+Postcondici¾n  Usuario autenticado y navegaci¾n seg·n rol.  
+ 
+CU-02: Transferencia simulada  
+Elemento  Descripci¾n  
+Actor  Cliente autenticado  
+Precondici¾n  Cuenta origen y destino activas; usuario autorizado  
+Flujo  1. Selecciona origen/destino y monto.  
+2. Backend valida titularidad, saldo, moneda y monto.  
+3. Ejecuta transacci¾n SQL.  
+4. Registra movimiento y actualiza saldos.  
+5. Devuelve comprobante ficticio.  
+Alternativa  Saldo insuficiente, cuenta bloqueada o datos invßlidos: no se modifica 
+ning·n saldo.  
+Postcondici¾n  Transferencia completada una sola vez o rechazada sin cambios parciales.  
+ 
+CU-03: Solicitud de prÚstamo  
+Elemento  Descripci¾n  
+Actor  Cliente  
+Precondici¾n  Cliente autenticado y activo  
+Flujo  1. Ingresa monto y plazo.  
+2. Sistema valida datos.  
+3. Registra solicitud en estado SOLICITADO.  
+4. Cliente consulta estado.  
+Postcondici¾n  Solicitud almacenada para revisi¾n simulada.  
+ 
+3.3 Requisitos de rendimiento  
+ò RNF -06: En entorno de prueba, las consultas comunes deberßn responder en menos de 
+2 segundos con hasta 50 usuarios concurrentes, sujeto a hardware disponible.  
+SRS û Sistema de Gesti¾n Bancaria Digital | IEEE 830  
+Universidad TÚcnica Luis Vargas Torres de Esmeraldas û Grupo #4 û Pßgina 10 3.4 Requisitos l¾gicos de la base de datos  
+ò BD-01: La base de datos se implementarß en MySQL con motor InnoDB.  
+ò BD-02: Se utilizarßn claves primarias y forßneas para mantener integridad referencial.  
+ò BD-03: Los montos se almacenarßn como DECIMAL, no como FLOAT.  
+ò BD-04: Identificaci¾n, correo, n·mero de cuenta y referencia de movimiento tendrßn 
+restricciones de unicidad donde corresponda.  
+ò BD-05: Las tablas principales serßn clientes, usuarios, cuentas, movimientos, tarjetas y 
+prÚstamos.  
+ò BD-06: Las credenciales de Keycloak no se almacenarßn en la base de datos local.  
+ò BD-07: No se almacenarßn n·meros completos de tarjeta, CVV ni PIN.  
+ò BD-08: Los movimientos completados no se eliminarßn fÝsicamente desde la interfaz; 
+se conservarß trazabilidad.  
+3.5 Restricciones de dise±o  
+ò Se aplicarßn las restricciones tecnol¾gicas indicadas en la secci¾n 2.4 (PHP, JavaScript, 
+MySQL, Nginx, Keycloak y Docker).  
+ò Las respuestas de las APIs usarßn JSON con los c¾digos HTTP definidos en la secci¾n 
+3.1.4.  
+ò La arquitectura por capas descrita en la secci¾n 2.1.1 deberß respetarse en la 
+implementaci¾n.  
+3.6 Atributos del sistema (requisitos no funcionales)  
+Tabla 6. Requisitos no funcionales (el requisito de rendimiento RNF -06 se encuentra en 3.3)  
+ID Atributo  Requisito verificable  
+RNF -01 Seguridad  Todas las rutas protegidas deberßn validar autenticaci¾n y 
+autorizaci¾n; no confiar solo en controles de interfaz.  
+RNF -02 Contrase±as  Las contrase±as serßn administradas por Keycloak; PHP/MySQL 
+no almacenarßn contrase±as en texto plano.  
+RNF -03 Protecci¾n de 
+datos  Se usarßn consultas preparadas, validaci¾n de entrada y salida 
+escapada para reducir SQL injection y XSS.  
+RNF -04 Privacidad  Cada cliente solo podrß acceder a sus propios datos, salvo 
+permisos explÝcitos de asesor/admin.  
+RNF -05 Integridad  Las operaciones financieras simuladas usarßn transacciones SQL 
+y bloqueo/validaci¾n para evitar saldos inconsistentes.  
+RNF -07 Disponibilidad  El sistema deberß poder reiniciarse mediante Docker Compose y 
+conservar datos mediante vol·menes persistentes.  
+RNF -08 Usabilidad  Los mensajes deberßn ser comprensibles en espa±ol y los 
+formularios indicar errores junto al campo correspondiente.  
+RNF -09 Compatibilidad  La interfaz deberß funcionar en versiones recientes de Chrome, 
+Edge y Firefox.  
+SRS û Sistema de Gesti¾n Bancaria Digital | IEEE 830  
+Universidad TÚcnica Luis Vargas Torres de Esmeraldas û Grupo #4 û Pßgina 11 ID Atributo  Requisito verificable  
+RNF -10 Mantenibilidad  El backend deberß organizarse por m¾dulos, separar 
+configuraci¾n y l¾gica, y documentar endpoints.  
+RNF -11 Portabilidad  El sistema deberß ejecutarse en equipos compatibles con Docker 
+Desktop sin instalaci¾n manual de cada servicio.  
+RNF -12 Respaldo  El equipo deberß documentar un procedimiento de exportaci¾n y 
+restauraci¾n de la base de datos.  
+RNF -13 Configuraci¾n  Secretos y credenciales se suministrarßn mediante variables de 
+entorno o archivos secretos, nunca en repositorios p·blicos.  
+ 
+3.7 Reglas de negocio  
+ò RN-01: Una cuenta cerrada o bloqueada no podrß realizar movimientos.  
+ò RN-02: El monto de cualquier operaci¾n deberß ser mayor que cero.  
+ò RN-03: Los retiros y transferencias no podrßn exceder el saldo disponible.  
+ò RN-04: Una transferencia deberß actualizar origen y destino dentro de una ·nica 
+transacci¾n.  
+ò RN-05: No se permitirß transferir a la misma cuenta.  
+ò RN-06: Las operaciones deberßn utilizar la moneda definida para las cuentas; no se harß 
+conversi¾n automßtica.  
+ò RN-07: Cada movimiento tendrß una referencia ·nica para prevenir duplicados.  
+ò RN-08: El cliente solo podrß consultar sus recursos propios.  
+ò RN-09: Las tarjetas serßn ficticias y se mostrarßn ·nicamente los ·ltimos cuatro 
+dÝgitos/token.  
+ò RN-10: La aprobaci¾n de prÚstamos serß una simulaci¾n acadÚmica, no una evaluaci¾n 
+crediticia real.  
+4. Informaci¾n de soporte  
+4.1 Criterios de aceptaci¾n  
+Tabla 7. Criterios de aceptaci¾n  
+ID Criterio  
+CA-01 Un usuario puede iniciar sesi¾n mediante Keycloak y visualizar opciones 
+correspondientes a su rol.  
+CA-02 Un administrador puede registrar y consultar clientes con validaciones.  
+CA-03 Una cuenta creada queda asociada al cliente correcto.  
+CA-04 Un dep¾sito vßlido actualiza el saldo y genera un movimiento.  
+CA-05 Un retiro con saldo insuficiente se rechaza sin cambiar el saldo.  
+CA-06 Una transferencia vßlida debita y acredita correctame nte y deja registro.  
+CA-07 Una transferencia fallida no deja cambios parciales.  
+SRS û Sistema de Gesti¾n Bancaria Digital | IEEE 830  
+Universidad TÚcnica Luis Vargas Torres de Esmeraldas û Grupo #4 û Pßgina 12 ID Criterio  
+CA-08 Un cliente no puede consultar cuentas de otro cliente.  
+CA-09 Una tarjeta ficticia puede bloquearse y el estado queda reflejado.  
+CA-10 Una solicitud de prÚstamo se registra y puede consultarse.  
+CA-11 Los servicios pueden iniciarse con Docker Compose y los datos persisten tras reiniciar.  
+CA-12 Las APIs devuelven JSON y c¾digos HTTP consistentes.  
+ 
+4.2 Plan de pruebas  
+Tabla 8. Plan de pruebas  
+Tipo Pruebas propuestas  
+Unitarias  Validaciones, cßlculo de saldo, reglas de movimientos.  
+Integraci¾n  PHP-MySQL, PHP -Keycloak, frontend -API. 
+Funcionales  Registro de cliente, cuenta, movimientos, tarjetas y prÚstamos.  
+Seguridad  Roles, acceso a recursos ajenos, SQL injection, XSS, tokens expirados.  
+Rendimiento  Pruebas de carga moderada sobre endpoints principales.  
+Despliegue  Arranque, parada, reinicio y persistencia de contenedores.  
+ 
+4.3 Riesgos y mitigaci¾n  
+Tabla 9. Riesgos  
+Riesgo  Mitigaci¾n  
+PÚrdida de datos  Vol·menes persistentes y copias de seguridad de desarrollo.  
+Acceso no autorizado  Validaci¾n de JWT, roles y propiedad de recursos en backend.  
+Transferencias duplicadas  Referencia idempotente y transacciones SQL.  
+Exposici¾n de secretos  Variables de entorno, archivos ignorados por Git y secretos de 
+Docker.  
+Complejidad de integraci¾n  Desarrollar primero m¾dulos mÝnimos y probar cada integraci¾n.  
+Problemas de 
+Docker/virtualizaci¾n  Verificar requisitos de Docker Desk top y configuraci¾n de 
+virtualizaci¾n.  
+ 
+4.4 Organizaci¾n sugerida del equipo  
+Tabla 10. Responsabilidades  
+Integrante  Responsabilidad sugerida  
+Caicedo  Melany  Anßlisis de requisitos y m¾dulo de clientes  
+Rosero Axel  Base de datos MySQL y m¾dulo de cuentas  
+Garcia Antonella  Frontend JavaScript y experiencia de usuario  
+SRS û Sistema de Gesti¾n Bancaria Digital | IEEE 830  
+Universidad TÚcnica Luis Vargas Torres de Esmeraldas û Grupo #4 û Pßgina 13 Integrante  Responsabilidad sugerida  
+Gonza lez Thaiz  Backend PHP y APIs REST  
+Solis Jordan  Docker, Nginx, Keycloak, integraci¾n y pruebas  
+ 
+La distribuci¾n es una propuesta inicial y puede modificarse por acuerdo del grupo.  
+ApÚndices  
+ApÚndice A. Modelo entidad -relaci¾n textual  
+ò CLIENTES 1:N CUENTAS  
+ò CLIENTES 1:N PRESTAMOS  
+ò CLIENTES 1:0.1 USUARIOS (asociaci¾n de perfil local; identidad en Keycloak)  
+ò CUENTAS 1:N TARJETAS  
+ò CUENTAS 1:N MOVIMIENTOS como cuenta origen  
+ò CUENTAS 0 .1:N MOVIMIENTOS como cuenta destino  
+ApÚndice B. Estados permitidos  
+Entidad  Estados  
+Cliente  ACTIVO, INACTIVO, BLOQUEADO  
+Usuario  ACTIVO, INACTIVO, BLOQUEADO  
+Cuenta  ACTIVA, BLOQUEADA, CERRADA  
+Movimiento  PENDIENTE, COMPLETADO, RECHAZADO, REVERSADO  
+Tarjeta  ACTIVA, BLOQUEADA, VENCIDA  
+PrÚstamo  SOLICITADO, EN_REVISION, APROBADO, RECHAZADO, 
+CANCELADO  
+ 
+ApÚndice C. Consideraciones de seguridad  
+ò No almacenar contrase±as de Keycloak en MySQL.  
+ò No registrar tokens de acceso en logs.  
+ò No guardar PAN completo de tarjeta, CVV ni PIN.  
+ò Usar HTTPS fuera del entorno local.  
+ò Validar autorizaci¾n en cada endpoint.  
+ò Mantener claves y secretos fuera del c¾digo fuente.  
+ò Utilizar datos ficticios en capturas, pruebas y presentaciones.  
+SRS û Sistema de Gesti¾n Bancaria Digital | IEEE 830  
+Universidad TÚcnica Luis Vargas Torres de Esmeraldas û Grupo #4 û Pßgina 14 ApÚndice D. Aprobaci¾n  
+Nombre  Firma  Fecha  
+Caicedo  Melany    
+Rosero Axel    
+Garcia Antonella    
+Gonzalez Thaiz    
+Solis Jordan    
+Docente    
+ 
