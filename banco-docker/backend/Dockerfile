@@ -10,3 +10,6 @@ RUN a2enmod rewrite headers
 COPY ./apache.conf /etc/apache2/sites-available/000-default.conf
 
 WORKDIR /var/www/html
+
+# Copiar el código del backend dentro de la imagen
+COPY . /var/www/html
