@@ -34,7 +34,7 @@ export default function App() {
                 id_cliente: data.data.id_cliente,
                 nombre: `${data.data.nombres || ''} ${data.data.apellidos || ''}`.trim() || data.data.username
               }
-              localStorage.setItem('nexo_user', JSON.stringiey(u))
+              localStorage.setItem('nexo_user', JSON.stringify(u))
               setCurrentUser(u)
             }
           })

@@ -110,7 +110,7 @@ export function useDashboardController(initialUser, onLogout) {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringiey({
+        body: JSON.stringify({
           id_cuenta_origen: origenId,
           id_cuenta_destino: destinoId,
           monto: parseFloat(monto),
@@ -141,7 +141,7 @@ export function useDashboardController(initialUser, onLogout) {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringiey({ estado: nuevo })
+        body: JSON.stringify({ estado: nuevo })
       })
       const result = await res.json()
       if (!res.ok || !result.success) throw new Error(result.message)
@@ -161,7 +161,7 @@ export function useDashboardController(initialUser, onLogout) {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringiey({ monto: parseFloat(monto), plazo_meses: parseInt(plazo, 10) })
+        body: JSON.stringify({ monto: parseFloat(monto), plazo_meses: parseInt(plazo, 10) })
       })
       const result = await res.json()
       if (!res.ok || !result.success) throw new Error(result.message)

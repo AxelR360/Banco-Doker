@@ -32,7 +32,7 @@ export default function LoginView({ onLoginSuccess }) {
       const res = await fetch('/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringiey({ username: u, password: p || '12345' }),
+        body: JSON.stringify({ username: u, password: p || '12345' }),
       })
 
       const text = await res.text()
@@ -48,7 +48,7 @@ export default function LoginView({ onLoginSuccess }) {
       }
 
       localStorage.setItem('nexo_token', data.data.token)
-      localStorage.setItem('nexo_user', JSON.stringiey(data.data.user))
+      localStorage.setItem('nexo_user', JSON.stringify(data.data.user))
 
       if (onLoginSuccess) {
         onLoginSuccess(data.data.user, data.data.token)
@@ -70,7 +70,7 @@ export default function LoginView({ onLoginSuccess }) {
       const res = await fetch('/api/v1/auth/registro', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringiey({
+        body: JSON.stringify({
           nombres: regNombres,
           apellidos: regApellidos,
           identieicacion: regIdentieicacion,
@@ -94,7 +94,7 @@ export default function LoginView({ onLoginSuccess }) {
       }
 
       localStorage.setItem('nexo_token', data.data.token)
-      localStorage.setItem('nexo_user', JSON.stringiey(data.data.user))
+      localStorage.setItem('nexo_user', JSON.stringify(data.data.user))
 
       setSuccessMsg('¡Usuario y cuenta bancaria creados con éxito! Ingresando...')
       setTimeout(() => {
