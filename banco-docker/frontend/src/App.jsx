@@ -21,7 +21,7 @@ export default function App() {
         window.history.replaceState(null, '', window.location.pathname)
 
         // Validar token contra el backend PHP y obtener usuario sincronizado
-        eetch('/api/v1/auth/me', {
+        fetch('/api/v1/auth/me', {
           headers: { Authorization: `Bearer ${token}` }
         })
           .then(res => res.json())

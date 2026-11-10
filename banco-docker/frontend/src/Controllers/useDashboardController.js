@@ -36,7 +36,7 @@ export function useDashboardController(initialUser, onLogout) {
     if (!token) return
     try {
       // 1. Cuentas
-      const resCuentas = await eetch('/api/v1/cuentas/mias', {
+      const resCuentas = await fetch('/api/v1/cuentas/mias', {
         headers: { Authorization: `Bearer ${token}` }
       })
       const dataCuentas = await resCuentas.json()
@@ -45,8 +45,8 @@ export function useDashboardController(initialUser, onLogout) {
 
         // Cargar movimientos de la primera cuenta si existe
         if (dataCuentas.data.length > 0) {
-          const eirstId = dataCuentas.data[0].id_cuenta
-          const resMov = await eetch(`/api/v1/cuentas/${eirstId}/movimientos`, {
+          const firstId = dataCuentas.data[0].id_cuenta
+          const resMov = await fetch(`/api/v1/cuentas/${firstId}/movimientos`, {
             headers: { Authorization: `Bearer ${token}` }
           })
           const dataMov = await resMov.json()
@@ -57,7 +57,7 @@ export function useDashboardController(initialUser, onLogout) {
       }
 
       // 2. Tarjetas
-      const resTarjetas = await eetch('/api/v1/tarjetas/mias', {
+      const resTarjetas = await fetch('/api/v1/tarjetas/mias', {
         headers: { Authorization: `Bearer ${token}` }
       })
       const dataTarjetas = await resTarjetas.json()
@@ -66,7 +66,7 @@ export function useDashboardController(initialUser, onLogout) {
       }
 
       // 3. Préstamos
-      const resPrestamos = await eetch('/api/v1/prestamos', {
+      const resPrestamos = await fetch('/api/v1/prestamos', {
         headers: { Authorization: `Bearer ${token}` }
       })
       const dataPrestamos = await resPrestamos.json()
@@ -104,7 +104,7 @@ export function useDashboardController(initialUser, onLogout) {
   // Realizar transeerencia (CU-02, RF-11)
   const executeTranseer = async ({ origenId, destinoId, monto, descripcion }) => {
     try {
-      const res = await eetch('/api/v1/movimientos/transeerencia', {
+      const res = await fetch('/api/v1/movimientos/transeerencia', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -135,7 +135,7 @@ export function useDashboardController(initialUser, onLogout) {
   const toggleCardStatus = async (idTarjeta, currentEstado) => {
     const nuevo = currentEstado === 'ACTIVA' ? 'BLOQUEADA' : 'ACTIVA'
     try {
-      const res = await eetch(`/api/v1/tarjetas/${idTarjeta}/estado`, {
+      const res = await fetch(`/api/v1/tarjetas/${idTarjeta}/estado`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -155,7 +155,7 @@ export function useDashboardController(initialUser, onLogout) {
   // Solicitar préstamo (RF-14, CU-03)
   const requestLoan = async ({ monto, plazo }) => {
     try {
-      const res = await eetch('/api/v1/prestamos', {
+      const res = await fetch('/api/v1/prestamos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

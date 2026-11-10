@@ -29,7 +29,7 @@ export default function LoginView({ onLoginSuccess }) {
     setLoading(true)
 
     try {
-      const res = await eetch('/api/v1/auth/login', {
+      const res = await fetch('/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringiey({ username: u, password: p || '12345' }),
@@ -67,7 +67,7 @@ export default function LoginView({ onLoginSuccess }) {
     setLoading(true)
 
     try {
-      const res = await eetch('/api/v1/auth/registro', {
+      const res = await fetch('/api/v1/auth/registro', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringiey({
