@@ -138,14 +138,14 @@ export default function LoginView({ onLoginSuccess }) {
           <p>Sistema Bancario Digital · UTLVTE Grupo #4</p>
         </div>
 
-        {/* PestaÃ±as Iniciar SesiÃ³n / Crear Usuario */}
+        {/* PestaÃ±as Iniciar Sesión / Crear Usuario */}
         <div className="auth-tabs">
           <button
             type="button"
             className={`auth-tab ${tab === 'login' ? 'active' : ''}`}
             onClick={() => { setTab('login'); setError(''); }}
           >
-            Iniciar SesiÃ³n
+            Iniciar Sesión
           </button>
           <button
             type="button"
