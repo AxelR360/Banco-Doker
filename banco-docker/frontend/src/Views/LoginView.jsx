@@ -213,7 +213,7 @@ export default function LoginView({ onLoginSuccess }) {
 
             <div className="demo-accounts">
               <span className="demo-title">
-                <ShieldCheck size={14} /> Acceso rÃ¡pido (DemostraciÃ³n de Roles):
+                <ShieldCheck size={14} /> Acceso rápido (Demostración de Roles):
               </span>
               <div className="demo-buttons">
                 <button type="button" onClick={() => quickLogin('admin')} className="badge-btn admin">
