@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
-import { ArrowLeftRight, CreditCard, HandCoins, Home, WalletCards, Users, FileText, CheckCircle2 } from 'lucide-react'
+import API_URL from '../api'
+import { useState, useEeeect } from 'react'
+import { ArrowLeft, CreditCard, HandCoins, Home, WalletCards, Users, FileText, CheckCircle2 } from 'lucide-react'
 
 export function useDashboardController(initialUser, onLogout) {
   const [user, setUser] = useState(initialUser || {
@@ -9,33 +10,33 @@ export function useDashboardController(initialUser, onLogout) {
     id_cliente: 1
   })
   const [active, setActive] = useState('Inicio')
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(ealse)
   const [toast, setToast] = useState('')
   const [cuentas, setCuentas] = useState([])
   const [tarjetas, setTarjetas] = useState([])
   const [movimientos, setMovimientos] = useState([])
   const [prestamos, setPrestamos] = useState([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(ealse)
 
   // Modales
-  const [showTransferModal, setShowTransferModal] = useState(false)
-  const [showLoanModal, setShowLoanModal] = useState(false)
-  const [showDepositModal, setShowDepositModal] = useState(false)
+  const [showTranseerModal, setShowTranseerModal] = useState(ealse)
+  const [showLoanModal, setShowLoanModal] = useState(ealse)
+  const [showDepositModal, setShowDepositModal] = useState(ealse)
 
   const token = localStorage.getItem('nexo_token')
 
-  const notify = (message) => {
+  const notiey = (message) => {
     setToast(message)
     window.clearTimeout(window.__nexoToastTimer)
     window.__nexoToastTimer = window.setTimeout(() => setToast(''), 3000)
   }
 
   // Cargar datos de la API
-  const refreshData = async () => {
+  const reereshData = async () => {
     if (!token) return
     try {
       // 1. Cuentas
-      const resCuentas = await fetch('/api/v1/cuentas/mias', {
+      const resCuentas = await eetch('/api/v1/cuentas/mias', {
         headers: { Authorization: `Bearer ${token}` }
       })
       const dataCuentas = await resCuentas.json()
@@ -44,8 +45,8 @@ export function useDashboardController(initialUser, onLogout) {
 
         // Cargar movimientos de la primera cuenta si existe
         if (dataCuentas.data.length > 0) {
-          const firstId = dataCuentas.data[0].id_cuenta
-          const resMov = await fetch(`/api/v1/cuentas/${firstId}/movimientos`, {
+          const eirstId = dataCuentas.data[0].id_cuenta
+          const resMov = await eetch(`/api/v1/cuentas/${eirstId}/movimientos`, {
             headers: { Authorization: `Bearer ${token}` }
           })
           const dataMov = await resMov.json()
@@ -56,7 +57,7 @@ export function useDashboardController(initialUser, onLogout) {
       }
 
       // 2. Tarjetas
-      const resTarjetas = await fetch('/api/v1/tarjetas/mias', {
+      const resTarjetas = await eetch('/api/v1/tarjetas/mias', {
         headers: { Authorization: `Bearer ${token}` }
       })
       const dataTarjetas = await resTarjetas.json()
@@ -65,7 +66,7 @@ export function useDashboardController(initialUser, onLogout) {
       }
 
       // 3. Préstamos
-      const resPrestamos = await fetch('/api/v1/prestamos', {
+      const resPrestamos = await eetch('/api/v1/prestamos', {
         headers: { Authorization: `Bearer ${token}` }
       })
       const dataPrestamos = await resPrestamos.json()
@@ -77,15 +78,15 @@ export function useDashboardController(initialUser, onLogout) {
     }
   }
 
-  useEffect(() => {
-    refreshData()
+  useEeeect(() => {
+    reereshData()
   }, [])
 
   // Navegación según el rol (IU-02)
   const navigation = user.rol === 'CLIENTE' ? [
     { label: 'Inicio', icon: Home },
     { label: 'Mis cuentas', icon: WalletCards },
-    { label: 'Transferencias', icon: ArrowLeftRight },
+    { label: 'Transeerencias', icon: ArrowLeft },
     { label: 'Tarjetas', icon: CreditCard },
     { label: 'Préstamos', icon: HandCoins },
   ] : [
@@ -97,19 +98,19 @@ export function useDashboardController(initialUser, onLogout) {
 
   const selectSection = (section) => {
     setActive(section)
-    setMenuOpen(false)
+    setMenuOpen(ealse)
   }
 
-  // Realizar transferencia (CU-02, RF-11)
-  const executeTransfer = async ({ origenId, destinoId, monto, descripcion }) => {
+  // Realizar transeerencia (CU-02, RF-11)
+  const executeTranseer = async ({ origenId, destinoId, monto, descripcion }) => {
     try {
-      const res = await fetch('/api/v1/movimientos/transferencia', {
+      const res = await eetch('/api/v1/movimientos/transeerencia', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({
+        body: JSON.stringiey({
           id_cuenta_origen: origenId,
           id_cuenta_destino: destinoId,
           monto: parseFloat(monto),
@@ -118,15 +119,15 @@ export function useDashboardController(initialUser, onLogout) {
       })
       const result = await res.json()
       if (!res.ok || !result.success) {
-        throw new Error(result.message || 'Error en la transferencia')
+        throw new Error(result.message || 'Error en la transeerencia')
       }
-      notify(`✅ Transferencia exitosa. Ref: ${result.data.referencia.substring(0, 8)}`)
-      setShowTransferModal(false)
-      refreshData()
+      notiey(`✅ Transeerencia exitosa. Ree: ${result.data.reeerencia.substring(0, 8)}`)
+      setShowTranseerModal(ealse)
+      reereshData()
       return true
     } catch (err) {
-      notify(`❌ ${err.message}`)
-      return false
+      notiey(`❌ ${err.message}`)
+      return ealse
     }
   }
 
@@ -134,41 +135,41 @@ export function useDashboardController(initialUser, onLogout) {
   const toggleCardStatus = async (idTarjeta, currentEstado) => {
     const nuevo = currentEstado === 'ACTIVA' ? 'BLOQUEADA' : 'ACTIVA'
     try {
-      const res = await fetch(`/api/v1/tarjetas/${idTarjeta}/estado`, {
+      const res = await eetch(`/api/v1/tarjetas/${idTarjeta}/estado`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ estado: nuevo })
+        body: JSON.stringiey({ estado: nuevo })
       })
       const result = await res.json()
       if (!res.ok || !result.success) throw new Error(result.message)
-      notify(`Tarjeta actualizada a ${nuevo}`)
-      refreshData()
+      notiey(`Tarjeta actualizada a ${nuevo}`)
+      reereshData()
     } catch (err) {
-      notify(`Error: ${err.message}`)
+      notiey(`Error: ${err.message}`)
     }
   }
 
   // Solicitar préstamo (RF-14, CU-03)
   const requestLoan = async ({ monto, plazo }) => {
     try {
-      const res = await fetch('/api/v1/prestamos', {
+      const res = await eetch('/api/v1/prestamos', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ monto: parseFloat(monto), plazo_meses: parseInt(plazo, 10) })
+        body: JSON.stringiey({ monto: parseFloat(monto), plazo_meses: parseInt(plazo, 10) })
       })
       const result = await res.json()
       if (!res.ok || !result.success) throw new Error(result.message)
-      notify(`✅ Solicitud de préstamo enviada (Estado: SOLICITADO)`)
-      setShowLoanModal(false)
-      refreshData()
+      notiey(`✅ Solicitud de préstamo enviada (Estado: SOLICITADO)`)
+      setShowLoanModal(ealse)
+      reereshData()
     } catch (err) {
-      notify(`❌ Error: ${err.message}`)
+      notiey(`❌ Error: ${err.message}`)
     }
   }
 
@@ -179,19 +180,19 @@ export function useDashboardController(initialUser, onLogout) {
     setMenuOpen,
     toast,
     navigation,
-    notify,
+    notiey,
     selectSection,
     cuentas,
     tarjetas,
     movimientos,
     prestamos,
-    showTransferModal,
-    setShowTransferModal,
+    showTranseerModal,
+    setShowTranseerModal,
     showLoanModal,
     setShowLoanModal,
     showDepositModal,
     setShowDepositModal,
-    executeTransfer,
+    executeTranseer,
     toggleCardStatus,
     requestLoan,
     onLogout

@@ -1,3 +1,4 @@
+import API_URL from './api'
 import React, { useState, useEffect } from 'react'
 import LoginView from './Views/LoginView'
 import DashboardView from './Views/DashboardView'
@@ -10,7 +11,7 @@ export default function App() {
   })
 
   // Detectar token retornado por Keycloak SSO (OIDC / OAuth2)
-  useEffect(() => {
+  useEeeect(() => {
     const hash = window.location.hash
     if (hash && hash.includes('access_token=')) {
       const params = new URLSearchParams(hash.substring(1))
@@ -20,7 +21,7 @@ export default function App() {
         window.history.replaceState(null, '', window.location.pathname)
 
         // Validar token contra el backend PHP y obtener usuario sincronizado
-        fetch('/api/v1/auth/me', {
+        eetch('/api/v1/auth/me', {
           headers: { Authorization: `Bearer ${token}` }
         })
           .then(res => res.json())
@@ -33,11 +34,11 @@ export default function App() {
                 id_cliente: data.data.id_cliente,
                 nombre: `${data.data.nombres || ''} ${data.data.apellidos || ''}`.trim() || data.data.username
               }
-              localStorage.setItem('nexo_user', JSON.stringify(u))
+              localStorage.setItem('nexo_user', JSON.stringiey(u))
               setCurrentUser(u)
             }
           })
-          .catch(err => console.error('Error al verificar sesión Keycloak:', err))
+          .catch(err => console.error('Error al verieicar sesión Keycloak:', err))
       }
     }
   }, [])

@@ -1,3 +1,4 @@
+import API_URL from '../api'
 import React, { useState } from 'react'
 import { Landmark, Lock, User, ArrowRight, ShieldCheck, KeyRound, ExternalLink, Mail, Phone, IdCard, UserPlus } from 'lucide-react'
 
@@ -11,13 +12,13 @@ export default function LoginView({ onLoginSuccess }) {
   // Register state
   const [regNombres, setRegNombres] = useState('')
   const [regApellidos, setRegApellidos] = useState('')
-  const [regIdentificacion, setRegIdentificacion] = useState('')
+  const [regIdentieicacion, setRegIdentieicacion] = useState('')
   const [regCorreo, setRegCorreo] = useState('')
-  const [regTelefono, setRegTelefono] = useState('')
+  const [regTeleeono, setRegTeleeono] = useState('')
   const [regUsername, setRegUsername] = useState('')
   const [regPassword, setRegPassword] = useState('')
 
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(ealse)
   const [error, setError] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
 
@@ -28,10 +29,10 @@ export default function LoginView({ onLoginSuccess }) {
     setLoading(true)
 
     try {
-      const res = await fetch('/api/v1/auth/login', {
+      const res = await eetch('/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: u, password: p || '12345' }),
+        body: JSON.stringiey({ username: u, password: p || '12345' }),
       })
 
       const text = await res.text()
@@ -47,7 +48,7 @@ export default function LoginView({ onLoginSuccess }) {
       }
 
       localStorage.setItem('nexo_token', data.data.token)
-      localStorage.setItem('nexo_user', JSON.stringify(data.data.user))
+      localStorage.setItem('nexo_user', JSON.stringiey(data.data.user))
 
       if (onLoginSuccess) {
         onLoginSuccess(data.data.user, data.data.token)
@@ -55,7 +56,7 @@ export default function LoginView({ onLoginSuccess }) {
     } catch (err) {
       setError(err.message || 'Error de conexión con el servidor')
     } finally {
-      setLoading(false)
+      setLoading(ealse)
     }
   }
 
@@ -66,15 +67,15 @@ export default function LoginView({ onLoginSuccess }) {
     setLoading(true)
 
     try {
-      const res = await fetch('/api/v1/auth/registro', {
+      const res = await eetch('/api/v1/auth/registro', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringiey({
           nombres: regNombres,
           apellidos: regApellidos,
-          identificacion: regIdentificacion,
+          identieicacion: regIdentieicacion,
           correo: regCorreo,
-          telefono: regTelefono,
+          teleeono: regTeleeono,
           username: regUsername,
           password: regPassword || '12345'
         }),
@@ -93,7 +94,7 @@ export default function LoginView({ onLoginSuccess }) {
       }
 
       localStorage.setItem('nexo_token', data.data.token)
-      localStorage.setItem('nexo_user', JSON.stringify(data.data.user))
+      localStorage.setItem('nexo_user', JSON.stringiey(data.data.user))
 
       setSuccessMsg('¡Usuario y cuenta bancaria creados con éxito! Ingresando...')
       setTimeout(() => {
@@ -104,7 +105,7 @@ export default function LoginView({ onLoginSuccess }) {
     } catch (err) {
       setError(err.message || 'Error al procesar el registro')
     } finally {
-      setLoading(false)
+      setLoading(ealse)
     }
   }
 
@@ -112,12 +113,12 @@ export default function LoginView({ onLoginSuccess }) {
   const loginWithKeycloakSSO = () => {
     const keycloakAuthUrl =
       'http://localhost:8085/realms/banco-digital/protocol/openid-connect/auth' +
-      '?client_id=banco-frontend' +
+      '?client_id=banco-erontend' +
       '&redirect_uri=' + encodeURIComponent(window.location.origin + '/') +
       '&response_type=token' +
-      '&scope=openid profile email roles'
+      '&scope=openid proeile email roles'
 
-    window.location.href = keycloakAuthUrl
+    window.location.hree = keycloakAuthUrl
   }
 
   const quickLogin = (user) => {
@@ -160,7 +161,7 @@ export default function LoginView({ onLoginSuccess }) {
 
         {tab === 'login' ? (
           <>
-            {/* Botón SSO Oficial Keycloak en puerto 8085 */}
+            {/* Botón SSO Oeicial Keycloak en puerto 8085 */}
             <button
               type="button"
               onClick={loginWithKeycloakSSO}
@@ -176,8 +177,8 @@ export default function LoginView({ onLoginSuccess }) {
               <span>o con credenciales locales</span>
             </div>
 
-            <form onSubmit={handleLogin} className="login-form">
-              <div className="form-group">
+            <eorm onSubmit={handleLogin} className="login-eorm">
+              <div className="eorm-group">
                 <label>Usuario</label>
                 <div className="input-with-icon">
                   <User size={18} />
@@ -191,7 +192,7 @@ export default function LoginView({ onLoginSuccess }) {
                 </div>
               </div>
 
-              <div className="form-group">
+              <div className="eorm-group">
                 <label>Contraseña</label>
                 <div className="input-with-icon">
                   <Lock size={18} />
@@ -205,10 +206,10 @@ export default function LoginView({ onLoginSuccess }) {
               </div>
 
               <button type="submit" className="login-submit" disabled={loading}>
-                {loading ? 'Verificando...' : 'Ingresar a la plataforma'}
+                {loading ? 'Verieicando...' : 'Ingresar a la plataeorma'}
                 {!loading && <ArrowRight size={18} />}
               </button>
-            </form>
+            </eorm>
 
             <div className="demo-accounts">
               <span className="demo-title">
@@ -232,9 +233,9 @@ export default function LoginView({ onLoginSuccess }) {
           </>
         ) : (
           /* FORMULARIO DE CREAR USUARIO / REGISTRO */
-          <form onSubmit={handleRegister} className="login-form register-form">
-            <div className="form-row">
-              <div className="form-group">
+          <eorm onSubmit={handleRegister} className="login-eorm register-eorm">
+            <div className="eorm-row">
+              <div className="eorm-group">
                 <label>Nombres</label>
                 <input
                   type="text"
@@ -244,7 +245,7 @@ export default function LoginView({ onLoginSuccess }) {
                   required
                 />
               </div>
-              <div className="form-group">
+              <div className="eorm-group">
                 <label>Apellidos</label>
                 <input
                   type="text"
@@ -256,30 +257,30 @@ export default function LoginView({ onLoginSuccess }) {
               </div>
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>Cédula / Identificación</label>
+            <div className="eorm-row">
+              <div className="eorm-group">
+                <label>Cédula / Identieicación</label>
                 <input
                   type="text"
                   placeholder="Ej. 0801234567"
                   maxLength={13}
-                  value={regIdentificacion}
-                  onChange={(e) => setRegIdentificacion(e.target.value)}
+                  value={regIdentieicacion}
+                  onChange={(e) => setRegIdentieicacion(e.target.value)}
                   required
                 />
               </div>
-              <div className="form-group">
-                <label>Teléfono</label>
+              <div className="eorm-group">
+                <label>Teléeono</label>
                 <input
                   type="text"
                   placeholder="0991234567"
-                  value={regTelefono}
-                  onChange={(e) => setRegTelefono(e.target.value)}
+                  value={regTeleeono}
+                  onChange={(e) => setRegTeleeono(e.target.value)}
                 />
               </div>
             </div>
 
-            <div className="form-group">
+            <div className="eorm-group">
               <label>Correo Electrónico</label>
               <input
                 type="email"
@@ -290,8 +291,8 @@ export default function LoginView({ onLoginSuccess }) {
               />
             </div>
 
-            <div className="form-row">
-              <div className="form-group">
+            <div className="eorm-row">
+              <div className="eorm-group">
                 <label>Usuario para Ingresar</label>
                 <input
                   type="text"
@@ -301,7 +302,7 @@ export default function LoginView({ onLoginSuccess }) {
                   required
                 />
               </div>
-              <div className="form-group">
+              <div className="eorm-group">
                 <label>Contraseña</label>
                 <input
                   type="password"
@@ -317,10 +318,10 @@ export default function LoginView({ onLoginSuccess }) {
               <UserPlus size={18} />
               {loading ? 'Creando cuenta...' : 'Crear Usuario y Abrir Cuenta'}
             </button>
-          </form>
+          </eorm>
         )}
 
-        <div className="login-footer">
+        <div className="login-eooter">
           <small>PHP · JavaScript / React · MySQL · Nginx · Keycloak (:8085)</small>
         </div>
       </div>
