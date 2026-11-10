@@ -5,7 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-// Si la petición es para la API REST en JSON
+// Si la peticiÃ³n es para la API REST en JSON
 if (str_starts_with($uri, '/api/')) {
     header("Access-Control-Allow-Origin: *");
     header("Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS");
@@ -15,6 +15,8 @@ if (str_starts_with($uri, '/api/')) {
         http_response_code(200);
         exit;
     }
+
+    require_once __DIR__ . '/../vendor/autoload.php';
 
     require_once __DIR__ . '/../src/Response.php';
     require_once __DIR__ . '/../src/Database.php';
@@ -51,7 +53,7 @@ if (str_starts_with($uri, '/api/')) {
     exit;
 }
 
-// Enrutamiento de la aplicación web en PHP puro
+// Enrutamiento de la aplicaciÃ³n web en PHP puro
 if ($uri === '/logout.php' || $uri === '/logout') {
     require __DIR__ . '/logout.php';
     exit;
@@ -62,7 +64,7 @@ if ($uri === '/login.php' || $uri === '/login') {
     exit;
 }
 
-// Ruta principal ('/' o '/index.php'): Si no está logueado, va a login.php; si está logueado, va a dashboard.php
+// Ruta principal ('/' o '/index.php'): Si no estÃ¡ logueado, va a login.php; si estÃ¡ logueado, va a dashboard.php
 if (empty($_SESSION['user'])) {
     require __DIR__ . '/login.php';
     exit;
@@ -70,3 +72,4 @@ if (empty($_SESSION['user'])) {
     require __DIR__ . '/dashboard.php';
     exit;
 }
+

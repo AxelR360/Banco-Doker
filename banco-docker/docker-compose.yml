@@ -58,6 +58,7 @@ services:
       DB_NAME: banco_digital
       DB_USER: ${MYSQL_USER:-banco_user}
       DB_PASS: ${MYSQL_PASSWORD:-12345}
+      BANCO_JWT_SECRET: ${BANCO_JWT_SECRET:-}
       KEYCLOAK_REALM_URL: http://keycloak:8080/realms/banco-digital
     volumes:
       - ./backend:/var/www/html
