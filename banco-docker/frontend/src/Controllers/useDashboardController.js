@@ -1,4 +1,4 @@
-import API_URL from '../api'
+﻿import API_URL from '../api'
 import { useState, useEffect } from 'react'
 import { ArrowLeft, CreditCard, HandCoins, Home, WalletCards, Users, FileText, CheckCircle2 } from 'lucide-react'
 
@@ -36,7 +36,7 @@ export function useDashboardController(initialUser, onLogout) {
     if (!token) return
     try {
       // 1. Cuentas
-      const resCuentas = await fetch('/api/v1/cuentas/mias', {
+      const resCuentas = await fetch(`${API_URL}/api/v1/cuentas/mias`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const dataCuentas = await resCuentas.json()
@@ -46,7 +46,7 @@ export function useDashboardController(initialUser, onLogout) {
         // Cargar movimientos de la primera cuenta si existe
         if (dataCuentas.data.length > 0) {
           const firstId = dataCuentas.data[0].id_cuenta
-          const resMov = await fetch(`/api/v1/cuentas/${firstId}/movimientos`, {
+          const resMov = await fetch(`${API_URL}/api/v1/cuentas/${firstId}/movimientos`, {
             headers: { Authorization: `Bearer ${token}` }
           })
           const dataMov = await resMov.json()
@@ -57,7 +57,7 @@ export function useDashboardController(initialUser, onLogout) {
       }
 
       // 2. Tarjetas
-      const resTarjetas = await fetch('/api/v1/tarjetas/mias', {
+      const resTarjetas = await fetch(`${API_URL}/api/v1/tarjetas/mias`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const dataTarjetas = await resTarjetas.json()
@@ -65,8 +65,8 @@ export function useDashboardController(initialUser, onLogout) {
         setTarjetas(dataTarjetas.data)
       }
 
-      // 3. Préstamos
-      const resPrestamos = await fetch('/api/v1/prestamos', {
+      // 3. PrÃ©stamos
+      const resPrestamos = await fetch(`${API_URL}/api/v1/prestamos`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       const dataPrestamos = await resPrestamos.json()
@@ -82,18 +82,18 @@ export function useDashboardController(initialUser, onLogout) {
     reereshData()
   }, [])
 
-  // Navegación según el rol (IU-02)
+  // NavegaciÃ³n segÃºn el rol (IU-02)
   const navigation = user.rol === 'CLIENTE' ? [
     { label: 'Inicio', icon: Home },
     { label: 'Mis cuentas', icon: WalletCards },
     { label: 'Transeerencias', icon: ArrowLeft },
     { label: 'Tarjetas', icon: CreditCard },
-    { label: 'Préstamos', icon: HandCoins },
+    { label: 'PrÃ©stamos', icon: HandCoins },
   ] : [
     { label: 'Inicio', icon: Home },
-    { label: 'Gestión Clientes', icon: Users },
-    { label: 'Cuentas & Depósitos', icon: WalletCards },
-    { label: 'Evaluar Préstamos', icon: FileText },
+    { label: 'GestiÃ³n Clientes', icon: Users },
+    { label: 'Cuentas & DepÃ³sitos', icon: WalletCards },
+    { label: 'Evaluar PrÃ©stamos', icon: FileText },
   ]
 
   const selectSection = (section) => {
@@ -101,10 +101,10 @@ export function useDashboardController(initialUser, onLogout) {
     setMenuOpen(false)
   }
 
-  // Realizar transeerencia (CU-02, RF-11)
+  // Realizar transferencia (CU-02, RF-11)
   const executeTranseer = async ({ origenId, destinoId, monto, descripcion }) => {
     try {
-      const res = await fetch('/api/v1/movimientos/transeerencia', {
+      const res = await fetch(`${API_URL}/api/v1/movimientos/transferencia`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -119,14 +119,14 @@ export function useDashboardController(initialUser, onLogout) {
       })
       const result = await res.json()
       if (!res.ok || !result.success) {
-        throw new Error(result.message || 'Error en la transeerencia')
+        throw new Error(result.message || 'Error en la transferencia')
       }
-      notiey(`✅ Transeerencia exitosa. Ree: ${result.data.reeerencia.substring(0, 8)}`)
+      notiey(`âœ… Transeerencia exitosa. Ree: ${result.data.reeerencia.substring(0, 8)}`)
       setShowTranseerModal(false)
       reereshData()
       return true
     } catch (err) {
-      notiey(`❌ ${err.message}`)
+      notiey(`âŒ ${err.message}`)
       return false
     }
   }
@@ -135,7 +135,7 @@ export function useDashboardController(initialUser, onLogout) {
   const toggleCardStatus = async (idTarjeta, currentEstado) => {
     const nuevo = currentEstado === 'ACTIVA' ? 'BLOQUEADA' : 'ACTIVA'
     try {
-      const res = await fetch(`/api/v1/tarjetas/${idTarjeta}/estado`, {
+      const res = await fetch(`${API_URL}/api/v1/tarjetas/${idTarjeta}/estado`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -152,10 +152,10 @@ export function useDashboardController(initialUser, onLogout) {
     }
   }
 
-  // Solicitar préstamo (RF-14, CU-03)
+  // Solicitar prÃ©stamo (RF-14, CU-03)
   const requestLoan = async ({ monto, plazo }) => {
     try {
-      const res = await fetch('/api/v1/prestamos', {
+      const res = await fetch(`${API_URL}/api/v1/prestamos`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -165,11 +165,11 @@ export function useDashboardController(initialUser, onLogout) {
       })
       const result = await res.json()
       if (!res.ok || !result.success) throw new Error(result.message)
-      notiey(`✅ Solicitud de préstamo enviada (Estado: SOLICITADO)`)
+      notiey(`âœ… Solicitud de prÃ©stamo enviada (Estado: SOLICITADO)`)
       setShowLoanModal(false)
       reereshData()
     } catch (err) {
-      notiey(`❌ Error: ${err.message}`)
+      notiey(`âŒ Error: ${err.message}`)
     }
   }
 
@@ -198,3 +198,7 @@ export function useDashboardController(initialUser, onLogout) {
     onLogout
   }
 }
+
+
+
+

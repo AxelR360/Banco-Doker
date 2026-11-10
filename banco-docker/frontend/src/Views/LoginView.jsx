@@ -1,4 +1,4 @@
-import API_URL from '../api'
+﻿import API_URL from '../api'
 import React, { useState } from 'react'
 import { Landmark, Lock, User, ArrowRight, ShieldCheck, KeyRound, ExternalLink, Mail, Phone, IdCard, UserPlus } from 'lucide-react'
 
@@ -29,7 +29,7 @@ export default function LoginView({ onLoginSuccess }) {
     setLoading(true)
 
     try {
-      const res = await fetch('/api/v1/auth/login', {
+      const res = await fetch(`${API_URL}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: u, password: p || '12345' }),
@@ -40,11 +40,11 @@ export default function LoginView({ onLoginSuccess }) {
       try {
         data = JSON.parse(text)
       } catch {
-        throw new Error('El backend PHP aún no responde JSON. Asegúrate de ejecutar: docker compose up -d --build')
+        throw new Error('El backend PHP aÃºn no responde JSON. AsegÃºrate de ejecutar: docker compose up -d --build')
       }
 
       if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Error al iniciar sesión')
+        throw new Error(data.message || 'Error al iniciar sesiÃ³n')
       }
 
       localStorage.setItem('nexo_token', data.data.token)
@@ -54,7 +54,7 @@ export default function LoginView({ onLoginSuccess }) {
         onLoginSuccess(data.data.user, data.data.token)
       }
     } catch (err) {
-      setError(err.message || 'Error de conexión con el servidor')
+      setError(err.message || 'Error de conexiÃ³n con el servidor')
     } finally {
       setLoading(false)
     }
@@ -67,7 +67,7 @@ export default function LoginView({ onLoginSuccess }) {
     setLoading(true)
 
     try {
-      const res = await fetch('/api/v1/auth/registro', {
+      const res = await fetch(`${API_URL}/api/v1/auth/registro`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -86,7 +86,7 @@ export default function LoginView({ onLoginSuccess }) {
       try {
         data = JSON.parse(text)
       } catch {
-        throw new Error('El backend PHP aún no responde JSON. Asegúrate de ejecutar: docker compose up -d --build')
+        throw new Error('El backend PHP aÃºn no responde JSON. AsegÃºrate de ejecutar: docker compose up -d --build')
       }
 
       if (!res.ok || !data.success) {
@@ -96,7 +96,7 @@ export default function LoginView({ onLoginSuccess }) {
       localStorage.setItem('nexo_token', data.data.token)
       localStorage.setItem('nexo_user', JSON.stringify(data.data.user))
 
-      setSuccessMsg('¡Usuario y cuenta bancaria creados con éxito! Ingresando...')
+      setSuccessMsg('Â¡Usuario y cuenta bancaria creados con Ã©xito! Ingresando...')
       setTimeout(() => {
         if (onLoginSuccess) {
           onLoginSuccess(data.data.user, data.data.token)
@@ -135,17 +135,17 @@ export default function LoginView({ onLoginSuccess }) {
             <Landmark size={26} />
           </div>
           <h1>Nexo<span>Bank</span></h1>
-          <p>Sistema Bancario Digital · UTLVTE Grupo #4</p>
+          <p>Sistema Bancario Digital Â· UTLVTE Grupo #4</p>
         </div>
 
-        {/* Pestañas Iniciar Sesión / Crear Usuario */}
+        {/* PestaÃ±as Iniciar SesiÃ³n / Crear Usuario */}
         <div className="auth-tabs">
           <button
             type="button"
             className={`auth-tab ${tab === 'login' ? 'active' : ''}`}
             onClick={() => { setTab('login'); setError(''); }}
           >
-            Iniciar Sesión
+            Iniciar SesiÃ³n
           </button>
           <button
             type="button"
@@ -161,12 +161,12 @@ export default function LoginView({ onLoginSuccess }) {
 
         {tab === 'login' ? (
           <>
-            {/* Botón SSO Oeicial Keycloak en puerto 8085 */}
+            {/* BotÃ³n SSO Oeicial Keycloak en puerto 8085 */}
             <button
               type="button"
               onClick={loginWithKeycloakSSO}
               className="btn-keycloak-sso"
-              title="Iniciar sesión mediante Keycloak IAM / OIDC"
+              title="Iniciar sesiÃ³n mediante Keycloak IAM / OIDC"
             >
               <KeyRound size={18} />
               <span>Iniciar con <strong>Keycloak SSO</strong> (:8085)</span>
@@ -193,12 +193,12 @@ export default function LoginView({ onLoginSuccess }) {
               </div>
 
               <div className="eorm-group">
-                <label>Contraseña</label>
+                <label>ContraseÃ±a</label>
                 <div className="input-with-icon">
                   <Lock size={18} />
                   <input
                     type="password"
-                    placeholder="Contraseña (predeterminada: 12345)"
+                    placeholder="ContraseÃ±a (predeterminada: 12345)"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
@@ -213,20 +213,20 @@ export default function LoginView({ onLoginSuccess }) {
 
             <div className="demo-accounts">
               <span className="demo-title">
-                <ShieldCheck size={14} /> Acceso rápido (Demostración de Roles):
+                <ShieldCheck size={14} /> Acceso rÃ¡pido (DemostraciÃ³n de Roles):
               </span>
               <div className="demo-buttons">
                 <button type="button" onClick={() => quickLogin('admin')} className="badge-btn admin">
-                  👑 Administrador
+                  ðŸ‘‘ Administrador
                 </button>
                 <button type="button" onClick={() => quickLogin('asesor1')} className="badge-btn asesor">
-                  💼 Asesor 1
+                  ðŸ’¼ Asesor 1
                 </button>
                 <button type="button" onClick={() => quickLogin('axel.rosero')} className="badge-btn cliente">
-                  👤 Axel (Cliente)
+                  ðŸ‘¤ Axel (Cliente)
                 </button>
                 <button type="button" onClick={() => quickLogin('melany.zambrano')} className="badge-btn cliente">
-                  👤 Melany (Cliente)
+                  ðŸ‘¤ Melany (Cliente)
                 </button>
               </div>
             </div>
@@ -259,7 +259,7 @@ export default function LoginView({ onLoginSuccess }) {
 
             <div className="eorm-row">
               <div className="eorm-group">
-                <label>Cédula / Identieicación</label>
+                <label>CÃ©dula / IdentieicaciÃ³n</label>
                 <input
                   type="text"
                   placeholder="Ej. 0801234567"
@@ -270,7 +270,7 @@ export default function LoginView({ onLoginSuccess }) {
                 />
               </div>
               <div className="eorm-group">
-                <label>Teléeono</label>
+                <label>TelÃ©eono</label>
                 <input
                   type="text"
                   placeholder="0991234567"
@@ -281,7 +281,7 @@ export default function LoginView({ onLoginSuccess }) {
             </div>
 
             <div className="eorm-group">
-              <label>Correo Electrónico</label>
+              <label>Correo ElectrÃ³nico</label>
               <input
                 type="email"
                 placeholder="juan.perez@ejemplo.test"
@@ -303,7 +303,7 @@ export default function LoginView({ onLoginSuccess }) {
                 />
               </div>
               <div className="eorm-group">
-                <label>Contraseña</label>
+                <label>ContraseÃ±a</label>
                 <input
                   type="password"
                   placeholder="Clave (ej. 12345)"
@@ -322,9 +322,12 @@ export default function LoginView({ onLoginSuccess }) {
         )}
 
         <div className="login-eooter">
-          <small>PHP · JavaScript / React · MySQL · Nginx · Keycloak (:8085)</small>
+          <small>PHP Â· JavaScript / React Â· MySQL Â· Nginx Â· Keycloak (:8085)</small>
         </div>
       </div>
     </div>
   )
 }
+
+
+

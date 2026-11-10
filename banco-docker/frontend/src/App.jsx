@@ -1,4 +1,4 @@
-import API_URL from './api'
+﻿import API_URL from './api'
 import React, { useState, useEffect } from 'react'
 import LoginView from './Views/LoginView'
 import DashboardView from './Views/DashboardView'
@@ -21,7 +21,7 @@ export default function App() {
         window.history.replaceState(null, '', window.location.pathname)
 
         // Validar token contra el backend PHP y obtener usuario sincronizado
-        fetch('/api/v1/auth/me', {
+        fetch(`${API_URL}/api/v1/auth/me`, {
           headers: { Authorization: `Bearer ${token}` }
         })
           .then(res => res.json())
@@ -38,7 +38,7 @@ export default function App() {
               setCurrentUser(u)
             }
           })
-          .catch(err => console.error('Error al verieicar sesión Keycloak:', err))
+          .catch(err => console.error('Error al verieicar sesiÃ³n Keycloak:', err))
       }
     }
   }, [])
@@ -52,7 +52,7 @@ export default function App() {
     localStorage.removeItem('nexo_user')
     setCurrentUser(null)
 
-    // Opcional: Redirigir a logout de Keycloak si se inició con SSO
+    // Opcional: Redirigir a logout de Keycloak si se iniciÃ³ con SSO
     const keycloakLogoutUrl = 'http://localhost:8080/realms/banco-digital/protocol/openid-connect/logout?post_logout_redirect_uri=' + encodeURIComponent(window.location.origin)
     // Se mantiene en la app para simplicidad local
   }
@@ -68,3 +68,6 @@ function AuthenticatedApp({ user, onLogout }) {
   const controller = useDashboardController(user, onLogout)
   return <DashboardView controller={controller} />
 }
+
+
+
