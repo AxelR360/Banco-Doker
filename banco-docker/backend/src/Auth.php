@@ -1,7 +1,13 @@
 <?php
 
 class Auth {
-    private static string $secret = 'super_secret_jwt_key_banco_digital_2026';
+    private static function signingKey(): string {
+        $key = getenv('BANCO_JWT_SECRET');
+        if (!is_string($key) || strlen($key) < 32) {
+            throw new RuntimeException('BANCO_JWT_SECRET requires at least 32 characters.');
+        }
+        return $key;
+    }
 
     public static function generateToken(array $payload, int $expirySeconds = 86400): string {
         $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256']);
@@ -11,7 +17,7 @@ class Auth {
 
         $base64UrlHeader = self::base64UrlEncode($header);
         $base64UrlPayload = self::base64UrlEncode($payloadJson);
-        $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, self::$secret, true);
+        $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, self::signingKey(), true);
         $base64UrlSignature = self::base64UrlEncode($signature);
 
         return $base64UrlHeader . "." . $base64UrlPayload . "." . $base64UrlSignature;
@@ -39,46 +45,39 @@ class Auth {
             return null;
         }
 
-        // 1. Verificación si el Token proviene de Keycloak (SSO / OIDC)
-        if (isset($payload['iss']) && str_contains($payload['iss'], 'banco-digital')) {
-            // Validar expiración del token Keycloak
-            if (isset($payload['exp']) && $payload['exp'] < time()) {
+        $issuer = rtrim(getenv('KEYCLOAK_REALM_URL') ?: '', '/');
+        if ($issuer !== '' && ($payload['iss'] ?? null) === $issuer) {
+            try {
+                $context = stream_context_create(['http' => ['timeout' => 5, 'follow_location' => 0]]);
+                $jwks = @file_get_contents($issuer . '/protocol/openid-connect/certs', false, $context);
+                if ($jwks === false) {
+                    return null;
+                }
+                $keys = \Firebase\JWT\JWK::parseKeySet(json_decode($jwks, true, 512, JSON_THROW_ON_ERROR), 'RS256');
+                $claims = \Firebase\JWT\JWT::decode($token, $keys);
+            } catch (\Exception $error) {
                 return null;
             }
 
-            // Buscar usuario local vinculado por keycloak_id (sub)
-            $sub = $payload['sub'] ?? '';
-            $db = Database::getConnection();
-            $stmt = $db->prepare("
-                SELECT u.id_usuario, u.username, u.rol, u.id_cliente, u.estado,
-                       c.nombres, c.apellidos, c.correo
-                FROM usuarios u
-                LEFT JOIN clientes c ON u.id_cliente = c.id_cliente
-                WHERE u.keycloak_id = :sub OR u.username = :uname
-            ");
-            $stmt->execute([
-                'sub'   => $sub,
-                'uname' => $payload['preferred_username'] ?? ''
-            ]);
-            $localUser = $stmt->fetch();
-
-            if ($localUser && $localUser['estado'] === 'ACTIVO') {
-                $fullName = trim(($localUser['nombres'] ?? '') . ' ' . ($localUser['apellidos'] ?? ''));
-                return [
-                    'id_usuario' => (int)$localUser['id_usuario'],
-                    'username'   => $localUser['username'],
-                    'rol'        => $localUser['rol'],
-                    'id_cliente' => $localUser['id_cliente'] ? (int)$localUser['id_cliente'] : null,
-                    'nombre'     => $fullName ?: ucfirst($localUser['username']),
-                    'correo'     => $localUser['correo'] ?? '',
-                    'source'     => 'keycloak_sso'
-                ];
+            if (($claims->iss ?? null) !== $issuer
+                || !in_array('banco-api', (array) ($claims->aud ?? []), true)
+                || ($claims->azp ?? null) !== 'banco-frontend'
+                || !isset($claims->exp)
+                || empty($claims->sub)) {
+                return null;
             }
+
+            $stmt = Database::getConnection()->prepare(
+                "SELECT id_usuario, username, rol, id_cliente
+                 FROM usuarios WHERE keycloak_id = :sub AND estado = 'ACTIVO'"
+            );
+            $stmt->execute(['sub' => $claims->sub]);
+            return $stmt->fetch() ?: null;
         }
 
-        // 2. Verificación si es un Token JWT emitido localmente
+        // Verificación si es un Token JWT emitido localmente
         $sig = self::base64UrlDecode($sigB64);
-        $expectedSig = hash_hmac('sha256', $headerB64 . "." . $payloadB64, self::$secret, true);
+        $expectedSig = hash_hmac('sha256', $headerB64 . "." . $payloadB64, self::signingKey(), true);
 
         if (!hash_equals($expectedSig, $sig)) {
             return null;

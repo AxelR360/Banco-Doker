@@ -1,8 +1,9 @@
+import { keycloak, initKeycloak } from '../keycloak'
 import API_URL from '../api'
 import React, { useState } from 'react'
 import { Landmark, Lock, User, ArrowRight, ShieldCheck, KeyRound, ExternalLink, Mail, Phone, IdCard, UserPlus } from 'lucide-react'
 
-export default function LoginView({ onLoginSuccess }) {
+export default function LoginView({ onLoginSuccess, ssoError }) {
   const [tab, setTab] = useState('login') // 'login' | 'register'
 
   // Login state
@@ -109,16 +110,13 @@ export default function LoginView({ onLoginSuccess }) {
     }
   }
 
-  // Flujo SSO con Keycloak (puerto 8085)
-  const loginWithKeycloakSSO = () => {
-    const keycloakAuthUrl =
-      'http://localhost:8085/realms/banco-digital/protocol/openid-connect/auth' +
-      '?client_id=banco-erontend' +
-      '&redirect_uri=' + encodeURIComponent(window.location.origin + '/') +
-      '&response_type=token' +
-      '&scope=openid proeile email roles'
-
-    window.location.hree = keycloakAuthUrl
+  const loginWithKeycloakSSO = async () => {
+    try {
+      await initKeycloak()
+      await keycloak.login({ redirectUri: window.location.origin + '/' })
+    } catch {
+      setError('No se pudo iniciar con Keycloak.')
+    }
   }
 
   const quickLogin = (user) => {
@@ -161,7 +159,8 @@ export default function LoginView({ onLoginSuccess }) {
 
         {tab === 'login' ? (
           <>
-            {/* BotÃ³n SSO Oeicial Keycloak en puerto 8085 */}
+            {ssoError && <p role="alert">No se pudo validar el acceso con Keycloak.</p>}
+            {keycloak && (
             <button
               type="button"
               onClick={loginWithKeycloakSSO}
@@ -169,9 +168,10 @@ export default function LoginView({ onLoginSuccess }) {
               title="Iniciar sesiÃ³n mediante Keycloak IAM / OIDC"
             >
               <KeyRound size={18} />
-              <span>Iniciar con <strong>Keycloak SSO</strong> (:8085)</span>
+              <span>Iniciar con <strong>Keycloak SSO</strong></span>
               <ExternalLink size={15} />
             </button>
+            )}
 
             <div className="divider-text">
               <span>o con credenciales locales</span>
@@ -322,7 +322,7 @@ export default function LoginView({ onLoginSuccess }) {
         )}
 
         <div className="login-eooter">
-          <small>PHP · JavaScript / React · MySQL · Nginx · Keycloak (:8085)</small>
+          <small>PHP · JavaScript / React · MySQL · Nginx · Keycloak</small>
         </div>
       </div>
     </div>

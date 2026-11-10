@@ -1,4 +1,5 @@
-﻿import API_URL from './api'
+import { keycloak, initKeycloak } from './keycloak'
+import API_URL from './api'
 import React, { useState, useEffect } from 'react'
 import LoginView from './Views/LoginView'
 import DashboardView from './Views/DashboardView'
@@ -10,40 +11,36 @@ export default function App() {
     return saved ? JSON.parse(saved) : null
   })
 
-  // Detectar token retornado por Keycloak SSO (OIDC / OAuth2)
   useEffect(() => {
-    const hash = window.location.hash
-    if (hash && hash.includes('access_token=')) {
-      const params = new URLSearchParams(hash.substring(1))
-      const token = params.get('access_token')
-      if (token) {
-        localStorage.setItem('nexo_token', token)
-        window.history.replaceState(null, '', window.location.pathname)
-
-        // Validar token contra el backend PHP y obtener usuario sincronizado
-        fetch(`${API_URL}/api/v1/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-          .then(res => res.json())
-          .then(data => {
-            if (data.success && data.data) {
-              const u = {
-                id_usuario: data.data.id_usuario,
-                username: data.data.username,
-                rol: data.data.rol,
-                id_cliente: data.data.id_cliente,
-                nombre: `${data.data.nombres || ''} ${data.data.apellidos || ''}`.trim() || data.data.username
-              }
-              localStorage.setItem('nexo_user', JSON.stringify(u))
-              setCurrentUser(u)
-            }
-          })
-          .catch(err => console.error('Error al verieicar sesiÃ³n Keycloak:', err))
-      }
+    if (API_URL) fetch(API_URL + '/api/v1/auth/me').catch(() => {})
+    if (keycloak) {
+      const discovery = keycloak.authServerUrl.replace(/\/$/, '') +
+        '/realms/banco-digital/.well-known/openid-configuration'
+      fetch(discovery, { mode: 'no-cors', credentials: 'omit' }).catch(() => {})
     }
   }, [])
 
-  const handleLoginSuccess = (user, token) => {
+  const [ssoError, setSsoError] = useState(false)
+  useEffect(() => {
+    if (!keycloak) return
+    initKeycloak().then(async authenticated => {
+      if (!authenticated) return
+      const response = await fetch(API_URL + '/api/v1/auth/me', {
+        headers: { Authorization: 'Bearer ' + keycloak.token },
+      })
+      const result = await response.json()
+      const user = result.data
+      if (!response.ok || !user?.id_usuario) throw new Error('SSO rejected')
+      user.nombre = [user.nombres, user.apellidos].filter(Boolean).join(' ') || user.username
+      localStorage.setItem('nexo_token', keycloak.token)
+      localStorage.setItem('nexo_user', JSON.stringify(user))
+      localStorage.setItem('nexo_sso', '1')
+      setCurrentUser(user)
+    }).catch(() => setSsoError(true))
+  }, [])
+
+  const handleLoginSuccess = (user) => {
+    localStorage.removeItem('nexo_sso')
     setCurrentUser(user)
   }
 
@@ -52,13 +49,16 @@ export default function App() {
     localStorage.removeItem('nexo_user')
     setCurrentUser(null)
 
-    // Opcional: Redirigir a logout de Keycloak si se iniciÃ³ con SSO
-    const keycloakLogoutUrl = 'http://localhost:8080/realms/banco-digital/protocol/openid-connect/logout?post_logout_redirect_uri=' + encodeURIComponent(window.location.origin)
-    // Se mantiene en la app para simplicidad local
+    const usedSso = localStorage.getItem('nexo_sso')
+    localStorage.removeItem('nexo_sso')
+    if (usedSso && keycloak) {
+      initKeycloak().then(() => keycloak.logout({ redirectUri: window.location.origin + '/' }))
+        .catch(() => setSsoError(true))
+    }
   }
 
   if (!currentUser) {
-    return <LoginView onLoginSuccess={handleLoginSuccess} />
+    return <LoginView onLoginSuccess={handleLoginSuccess} ssoError={ssoError} />
   }
 
   return <AuthenticatedApp user={currentUser} onLogout={handleLogout} />

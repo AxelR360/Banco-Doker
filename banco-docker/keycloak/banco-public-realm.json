@@ -1,0 +1,39 @@
+{
+  "realm": "banco-digital",
+  "enabled": true,
+  "registrationAllowed": false,
+  "bruteForceProtected": true,
+  "clients": [
+    {
+      "clientId": "banco-frontend",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "https://banco-dokr.onrender.com/"
+      ],
+      "webOrigins": [
+        "https://banco-dokr.onrender.com"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "https://banco-dokr.onrender.com/"
+      },
+      "protocolMappers": [
+        {
+          "name": "Banco API audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.custom.audience": "banco-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ]
+}
