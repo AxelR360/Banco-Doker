@@ -18,7 +18,7 @@ export default function LoginView({ onLoginSuccess }) {
   const [regUsername, setRegUsername] = useState('')
   const [regPassword, setRegPassword] = useState('')
 
-  const [loading, setLoading] = useState(ealse)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
 
@@ -56,7 +56,7 @@ export default function LoginView({ onLoginSuccess }) {
     } catch (err) {
       setError(err.message || 'Error de conexión con el servidor')
     } finally {
-      setLoading(ealse)
+      setLoading(false)
     }
   }
 
@@ -105,7 +105,7 @@ export default function LoginView({ onLoginSuccess }) {
     } catch (err) {
       setError(err.message || 'Error al procesar el registro')
     } finally {
-      setLoading(ealse)
+      setLoading(false)
     }
   }
 

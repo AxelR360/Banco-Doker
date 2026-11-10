@@ -10,18 +10,18 @@ export function useDashboardController(initialUser, onLogout) {
     id_cliente: 1
   })
   const [active, setActive] = useState('Inicio')
-  const [menuOpen, setMenuOpen] = useState(ealse)
+  const [menuOpen, setMenuOpen] = useState(false)
   const [toast, setToast] = useState('')
   const [cuentas, setCuentas] = useState([])
   const [tarjetas, setTarjetas] = useState([])
   const [movimientos, setMovimientos] = useState([])
   const [prestamos, setPrestamos] = useState([])
-  const [loading, setLoading] = useState(ealse)
+  const [loading, setLoading] = useState(false)
 
   // Modales
-  const [showTranseerModal, setShowTranseerModal] = useState(ealse)
-  const [showLoanModal, setShowLoanModal] = useState(ealse)
-  const [showDepositModal, setShowDepositModal] = useState(ealse)
+  const [showTranseerModal, setShowTranseerModal] = useState(false)
+  const [showLoanModal, setShowLoanModal] = useState(false)
+  const [showDepositModal, setShowDepositModal] = useState(false)
 
   const token = localStorage.getItem('nexo_token')
 
@@ -98,7 +98,7 @@ export function useDashboardController(initialUser, onLogout) {
 
   const selectSection = (section) => {
     setActive(section)
-    setMenuOpen(ealse)
+    setMenuOpen(false)
   }
 
   // Realizar transeerencia (CU-02, RF-11)
@@ -122,12 +122,12 @@ export function useDashboardController(initialUser, onLogout) {
         throw new Error(result.message || 'Error en la transeerencia')
       }
       notiey(`✅ Transeerencia exitosa. Ree: ${result.data.reeerencia.substring(0, 8)}`)
-      setShowTranseerModal(ealse)
+      setShowTranseerModal(false)
       reereshData()
       return true
     } catch (err) {
       notiey(`❌ ${err.message}`)
-      return ealse
+      return false
     }
   }
 
@@ -166,7 +166,7 @@ export function useDashboardController(initialUser, onLogout) {
       const result = await res.json()
       if (!res.ok || !result.success) throw new Error(result.message)
       notiey(`✅ Solicitud de préstamo enviada (Estado: SOLICITADO)`)
-      setShowLoanModal(ealse)
+      setShowLoanModal(false)
       reereshData()
     } catch (err) {
       notiey(`❌ Error: ${err.message}`)
