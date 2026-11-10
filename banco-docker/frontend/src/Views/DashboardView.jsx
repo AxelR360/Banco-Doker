@@ -40,16 +40,24 @@ export default function DashboardView({ controller }) {
     ? user.nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
     : 'US'
 
-  const handleTransferSubmit = (e) => {
+  const [transferPending, setTransferPending] = useState(false)
+
+  const handleTransferSubmit = async (e) => {
     e.preventDefault()
-    executeTransfer({
-      origenId: transferOrigen || (cuentas[0] ? cuentas[0].id_cuenta : 1),
+    const origenId = transferOrigen || cuentas[0]?.id_cuenta
+    if (!origenId || transferPending) return
+    setTransferPending(true)
+    const success = await executeTransfer({
+      origenId,
       destinoId: transferDestino,
       monto: transferMonto,
       descripcion: transferDesc || 'Transferencia inmediata'
     })
-    setTransferMonto('')
-    setTransferDestino('')
+    setTransferPending(false)
+    if (success) {
+      setTransferMonto('')
+      setTransferDestino('')
+    }
   }
 
   const handleLoanSubmit = (e) => {
@@ -272,13 +280,13 @@ export default function DashboardView({ controller }) {
             <form onSubmit={handleTransferSubmit}>
               <div className="form-group">
                 <label>Cuenta de Origen</label>
-                <select value={transferOrigen} onChange={(e) => setTransferOrigen(e.target.value)} required>
+                <select value={transferOrigen || cuentas[0]?.id_cuenta || ''} onChange={(e) => setTransferOrigen(e.target.value)} required>
                   {cuentas.map(c => (
                     <option key={c.id_cuenta} value={c.id_cuenta}>
                       {c.numero_cuenta} ({c.tipo}) - Saldo: ${c.saldo}
                     </option>
                   ))}
-                  {cuentas.length === 0 && <option value="1">Cuenta Principal 2200000001 ($12,480.50)</option>}
+                  {cuentas.length === 0 && <option value="">No hay cuentas disponibles</option>}
                 </select>
               </div>
 
@@ -318,7 +326,7 @@ export default function DashboardView({ controller }) {
 
               <div className="modal-actions">
                 <button type="button" className="btn-cancel" onClick={() => setShowTransferModal(false)}>Cancelar</button>
-                <button type="submit" className="primary">Confirmar Transferencia</button>
+                <button type="submit" className="primary" disabled={transferPending || cuentas.length === 0}>Confirmar Transferencia</button>
               </div>
             </form>
           </div>

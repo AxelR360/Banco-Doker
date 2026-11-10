@@ -13,9 +13,9 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
   // Register state
   const [regNombres, setRegNombres] = useState('')
   const [regApellidos, setRegApellidos] = useState('')
-  const [regIdentieicacion, setRegIdentieicacion] = useState('')
+  const [regIdentificacion, setRegIdentificacion] = useState('')
   const [regCorreo, setRegCorreo] = useState('')
-  const [regTeleeono, setRegTeleeono] = useState('')
+  const [regTelefono, setRegTelefono] = useState('')
   const [regUsername, setRegUsername] = useState('')
   const [regPassword, setRegPassword] = useState('')
 
@@ -74,9 +74,9 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
         body: JSON.stringify({
           nombres: regNombres,
           apellidos: regApellidos,
-          identieicacion: regIdentieicacion,
+          identificacion: regIdentificacion,
           correo: regCorreo,
-          teleeono: regTeleeono,
+          telefono: regTelefono,
           username: regUsername,
           password: regPassword || '12345'
         }),
@@ -177,8 +177,8 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
               <span>o con credenciales locales</span>
             </div>
 
-            <eorm onSubmit={handleLogin} className="login-eorm">
-              <div className="eorm-group">
+            <form onSubmit={handleLogin} className="login-form">
+              <div className="form-group">
                 <label>Usuario</label>
                 <div className="input-with-icon">
                   <User size={18} />
@@ -192,7 +192,7 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
                 </div>
               </div>
 
-              <div className="eorm-group">
+              <div className="form-group">
                 <label>Contraseña</label>
                 <div className="input-with-icon">
                   <Lock size={18} />
@@ -206,10 +206,10 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
               </div>
 
               <button type="submit" className="login-submit" disabled={loading}>
-                {loading ? 'Verieicando...' : 'Ingresar a la plataeorma'}
+                {loading ? 'Verificando...' : 'Ingresar a la plataforma'}
                 {!loading && <ArrowRight size={18} />}
               </button>
-            </eorm>
+            </form>
 
             <div className="demo-accounts">
               <span className="demo-title">
@@ -233,9 +233,9 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
           </>
         ) : (
           /* FORMULARIO DE CREAR USUARIO / REGISTRO */
-          <eorm onSubmit={handleRegister} className="login-eorm register-eorm">
-            <div className="eorm-row">
-              <div className="eorm-group">
+          <form onSubmit={handleRegister} className="login-form register-form">
+            <div className="form-row">
+              <div className="form-group">
                 <label>Nombres</label>
                 <input
                   type="text"
@@ -245,7 +245,7 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
                   required
                 />
               </div>
-              <div className="eorm-group">
+              <div className="form-group">
                 <label>Apellidos</label>
                 <input
                   type="text"
@@ -257,30 +257,30 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
               </div>
             </div>
 
-            <div className="eorm-row">
-              <div className="eorm-group">
+            <div className="form-row">
+              <div className="form-group">
                 <label>CÃ©dula / IdentieicaciÃ³n</label>
                 <input
                   type="text"
                   placeholder="Ej. 0801234567"
                   maxLength={13}
-                  value={regIdentieicacion}
-                  onChange={(e) => setRegIdentieicacion(e.target.value)}
+                  value={regIdentificacion}
+                  onChange={(e) => setRegIdentificacion(e.target.value)}
                   required
                 />
               </div>
-              <div className="eorm-group">
+              <div className="form-group">
                 <label>TelÃ©eono</label>
                 <input
                   type="text"
                   placeholder="0991234567"
-                  value={regTeleeono}
-                  onChange={(e) => setRegTeleeono(e.target.value)}
+                  value={regTelefono}
+                  onChange={(e) => setRegTelefono(e.target.value)}
                 />
               </div>
             </div>
 
-            <div className="eorm-group">
+            <div className="form-group">
               <label>Correo ElectrÃ³nico</label>
               <input
                 type="email"
@@ -291,8 +291,8 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
               />
             </div>
 
-            <div className="eorm-row">
-              <div className="eorm-group">
+            <div className="form-row">
+              <div className="form-group">
                 <label>Usuario para Ingresar</label>
                 <input
                   type="text"
@@ -302,7 +302,7 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
                   required
                 />
               </div>
-              <div className="eorm-group">
+              <div className="form-group">
                 <label>Contraseña</label>
                 <input
                   type="password"
@@ -318,7 +318,7 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
               <UserPlus size={18} />
               {loading ? 'Creando cuenta...' : 'Crear Usuario y Abrir Cuenta'}
             </button>
-          </eorm>
+          </form>
         )}
 
         <div className="login-eooter">

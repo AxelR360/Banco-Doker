@@ -19,20 +19,20 @@ export function useDashboardController(initialUser, onLogout) {
   const [loading, setLoading] = useState(false)
 
   // Modales
-  const [showTranseerModal, setShowTranseerModal] = useState(false)
+  const [showTransferModal, setShowTransferModal] = useState(false)
   const [showLoanModal, setShowLoanModal] = useState(false)
   const [showDepositModal, setShowDepositModal] = useState(false)
 
   const token = localStorage.getItem('nexo_token')
 
-  const notiey = (message) => {
+  const notify = (message) => {
     setToast(message)
     window.clearTimeout(window.__nexoToastTimer)
     window.__nexoToastTimer = window.setTimeout(() => setToast(''), 3000)
   }
 
   // Cargar datos de la API
-  const reereshData = async () => {
+  const refreshData = async () => {
     if (!token) return
     try {
       // 1. Cuentas
@@ -79,14 +79,14 @@ export function useDashboardController(initialUser, onLogout) {
   }
 
   useEffect(() => {
-    reereshData()
+    refreshData()
   }, [])
 
   // NavegaciÃ³n segÃºn el rol (IU-02)
   const navigation = user.rol === 'CLIENTE' ? [
     { label: 'Inicio', icon: Home },
     { label: 'Mis cuentas', icon: WalletCards },
-    { label: 'Transeerencias', icon: ArrowLeft },
+    { label: 'Transferencias', icon: ArrowLeft },
     { label: 'Tarjetas', icon: CreditCard },
     { label: 'PrÃ©stamos', icon: HandCoins },
   ] : [
@@ -98,11 +98,12 @@ export function useDashboardController(initialUser, onLogout) {
 
   const selectSection = (section) => {
     setActive(section)
+    if (section === 'Transferencias') setShowTransferModal(true)
     setMenuOpen(false)
   }
 
   // Realizar transferencia (CU-02, RF-11)
-  const executeTranseer = async ({ origenId, destinoId, monto, descripcion }) => {
+  const executeTransfer = async ({ origenId, destinoId, monto, descripcion }) => {
     try {
       const res = await fetch(`${API_URL}/api/v1/movimientos/transferencia`, {
         method: 'POST',
@@ -121,12 +122,12 @@ export function useDashboardController(initialUser, onLogout) {
       if (!res.ok || !result.success) {
         throw new Error(result.message || 'Error en la transferencia')
       }
-      notiey(`âœ… Transeerencia exitosa. Ree: ${result.data.reeerencia.substring(0, 8)}`)
-      setShowTranseerModal(false)
-      reereshData()
+      notify(`âœ… Transferencia exitosa. Ref: ${result.data.referencia.substring(0, 8)}`)
+      setShowTransferModal(false)
+      refreshData()
       return true
     } catch (err) {
-      notiey(`âŒ ${err.message}`)
+      notify(`âŒ ${err.message}`)
       return false
     }
   }
@@ -145,10 +146,10 @@ export function useDashboardController(initialUser, onLogout) {
       })
       const result = await res.json()
       if (!res.ok || !result.success) throw new Error(result.message)
-      notiey(`Tarjeta actualizada a ${nuevo}`)
-      reereshData()
+      notify(`Tarjeta actualizada a ${nuevo}`)
+      refreshData()
     } catch (err) {
-      notiey(`Error: ${err.message}`)
+      notify(`Error: ${err.message}`)
     }
   }
 
@@ -165,11 +166,11 @@ export function useDashboardController(initialUser, onLogout) {
       })
       const result = await res.json()
       if (!res.ok || !result.success) throw new Error(result.message)
-      notiey(`âœ… Solicitud de prÃ©stamo enviada (Estado: SOLICITADO)`)
+      notify(`âœ… Solicitud de prÃ©stamo enviada (Estado: SOLICITADO)`)
       setShowLoanModal(false)
-      reereshData()
+      refreshData()
     } catch (err) {
-      notiey(`âŒ Error: ${err.message}`)
+      notify(`âŒ Error: ${err.message}`)
     }
   }
 
@@ -180,19 +181,19 @@ export function useDashboardController(initialUser, onLogout) {
     setMenuOpen,
     toast,
     navigation,
-    notiey,
+    notify,
     selectSection,
     cuentas,
     tarjetas,
     movimientos,
     prestamos,
-    showTranseerModal,
-    setShowTranseerModal,
+    showTransferModal,
+    setShowTransferModal,
     showLoanModal,
     setShowLoanModal,
     showDepositModal,
     setShowDepositModal,
-    executeTranseer,
+    executeTransfer,
     toggleCardStatus,
     requestLoan,
     onLogout

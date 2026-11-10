@@ -6,7 +6,7 @@ class MovimientoController {
         $body = Router::getJsonBody();
 
         $origenId = (int)($body['id_cuenta_origen'] ?? 0);
-        $destinoId = (int)($body['id_cuenta_destino'] ?? 0);
+        $destino = trim((string)($body['id_cuenta_destino'] ?? ''));
         $monto = (float)($body['monto'] ?? 0);
         $descripcion = trim($body['descripcion'] ?? 'Transferencia bancaria');
 
@@ -14,21 +14,31 @@ class MovimientoController {
         if ($monto <= 0) {
             Response::error('El monto debe ser mayor que cero (RN-02)', 400);
         }
-        if ($origenId <= 0 || $destinoId <= 0) {
+        if ($origenId <= 0 || !ctype_digit($destino) || (float)$destino <= 0) {
             Response::error('Debe especificar cuenta origen y cuenta destino válidas', 400);
+        }
+        $db = Database::getConnection();
+        $stmtDestino = $db->prepare('SELECT id_cuenta FROM cuentas WHERE numero_cuenta = :destino');
+        $stmtDestino->execute(['destino' => $destino]);
+        $destinoId = (int) $stmtDestino->fetchColumn();
+        if ($destinoId === 0 && strlen($destino) < 10) {
+            $stmtDestino = $db->prepare('SELECT id_cuenta FROM cuentas WHERE id_cuenta = :destino');
+            $stmtDestino->execute(['destino' => $destino]);
+            $destinoId = (int) $stmtDestino->fetchColumn();
+        }
+        if ($destinoId === 0) {
+            Response::error('La cuenta de destino no existe', 400);
         }
         if ($origenId === $destinoId) {
             Response::error('No se puede transferir a la misma cuenta (RN-05)', 400);
         }
-
-        $db = Database::getConnection();
 
         // Validar que el cliente autenticado sea dueño de la cuenta origen (RN-08, RF-06)
         if ($currentUser['rol'] === 'CLIENTE') {
             $stmtAuth = $db->prepare("SELECT id_cliente FROM cuentas WHERE id_cuenta = :id");
             $stmtAuth->execute(['id' => $origenId]);
             $cuentaOrigenAuth = $stmtAuth->fetch();
-            if (!$cuentaOrigenAuth || (int)$cuentaOrigenAuth['id_cliente'] !== $currentUser['id_cliente']) {
+            if (!$cuentaOrigenAuth || (int)$cuentaOrigenAuth['id_cliente'] !== (int)$currentUser['id_cliente']) {
                 Response::error('No tienes autorización para realizar transferencias desde esta cuenta origen', 403);
             }
         }
