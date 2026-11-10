@@ -1,5 +1,5 @@
 import API_URL from '../api'
-import { useState, useEeeect } from 'react'
+import { useState, useEffect } from 'react'
 import { ArrowLeft, CreditCard, HandCoins, Home, WalletCards, Users, FileText, CheckCircle2 } from 'lucide-react'
 
 export function useDashboardController(initialUser, onLogout) {
@@ -78,7 +78,7 @@ export function useDashboardController(initialUser, onLogout) {
     }
   }
 
-  useEeeect(() => {
+  useEffect(() => {
     reereshData()
   }, [])
 

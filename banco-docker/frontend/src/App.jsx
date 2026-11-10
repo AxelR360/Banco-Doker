@@ -11,7 +11,7 @@ export default function App() {
   })
 
   // Detectar token retornado por Keycloak SSO (OIDC / OAuth2)
-  useEeeect(() => {
+  useEffect(() => {
     const hash = window.location.hash
     if (hash && hash.includes('access_token=')) {
       const params = new URLSearchParams(hash.substring(1))
