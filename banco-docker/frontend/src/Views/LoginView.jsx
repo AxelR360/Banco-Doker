@@ -1,4 +1,4 @@
-﻿import API_URL from '../api'
+import API_URL from '../api'
 import React, { useState } from 'react'
 import { Landmark, Lock, User, ArrowRight, ShieldCheck, KeyRound, ExternalLink, Mail, Phone, IdCard, UserPlus } from 'lucide-react'
 
@@ -135,7 +135,7 @@ export default function LoginView({ onLoginSuccess }) {
             <Landmark size={26} />
           </div>
           <h1>Nexo<span>Bank</span></h1>
-          <p>Sistema Bancario Digital Â· UTLVTE Grupo #4</p>
+          <p>Sistema Bancario Digital · UTLVTE Grupo #4</p>
         </div>
 
         {/* PestaÃ±as Iniciar SesiÃ³n / Crear Usuario */}
@@ -193,12 +193,12 @@ export default function LoginView({ onLoginSuccess }) {
               </div>
 
               <div className="eorm-group">
-                <label>ContraseÃ±a</label>
+                <label>Contraseña</label>
                 <div className="input-with-icon">
                   <Lock size={18} />
                   <input
                     type="password"
-                    placeholder="ContraseÃ±a (predeterminada: 12345)"
+                    placeholder="Contraseña (predeterminada: 12345)"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
@@ -217,16 +217,16 @@ export default function LoginView({ onLoginSuccess }) {
               </span>
               <div className="demo-buttons">
                 <button type="button" onClick={() => quickLogin('admin')} className="badge-btn admin">
-                  ðŸ‘‘ Administrador
+                  👔 Administrador
                 </button>
                 <button type="button" onClick={() => quickLogin('asesor1')} className="badge-btn asesor">
-                  ðŸ’¼ Asesor 1
+                  💼 Asesor 1
                 </button>
                 <button type="button" onClick={() => quickLogin('axel.rosero')} className="badge-btn cliente">
-                  ðŸ‘¤ Axel (Cliente)
+                  👤 Axel (Cliente)
                 </button>
                 <button type="button" onClick={() => quickLogin('melany.zambrano')} className="badge-btn cliente">
-                  ðŸ‘¤ Melany (Cliente)
+                  👤 Melany (Cliente)
                 </button>
               </div>
             </div>
@@ -303,7 +303,7 @@ export default function LoginView({ onLoginSuccess }) {
                 />
               </div>
               <div className="eorm-group">
-                <label>ContraseÃ±a</label>
+                <label>Contraseña</label>
                 <input
                   type="password"
                   placeholder="Clave (ej. 12345)"
@@ -322,7 +322,7 @@ export default function LoginView({ onLoginSuccess }) {
         )}
 
         <div className="login-eooter">
-          <small>PHP Â· JavaScript / React Â· MySQL Â· Nginx Â· Keycloak (:8085)</small>
+          <small>PHP · JavaScript / React · MySQL · Nginx · Keycloak (:8085)</small>
         </div>
       </div>
     </div>
