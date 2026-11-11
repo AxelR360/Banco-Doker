@@ -38,7 +38,7 @@ services:
     restart: unless-stopped
     command: start-dev --import-realm
     environment:
-      KEYCLOAK_ADMIN: banco-kc-admin
+      KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin123
       KC_HEALTH_ENABLED: "true"
     volumes:

@@ -1,7 +1,7 @@
 FROM quay.io/keycloak/keycloak:24.0.5
 
 # Variables de entorno optimizadas para Render (Free Tier 512MB RAM) y Docker Compose
-ENV KEYCLOAK_ADMIN=banco-kc-admin \
+ENV KEYCLOAK_ADMIN=admin \
     KEYCLOAK_ADMIN_PASSWORD=admin123 \
     KC_HEALTH_ENABLED=true \
     KC_HTTP_ENABLED=true \
