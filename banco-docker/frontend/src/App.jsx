@@ -13,7 +13,7 @@ export default function App() {
 
   useEffect(() => {
     if (API_URL) fetch(API_URL + '/api/v1/auth/me').catch(() => {})
-    if (keycloak) {
+    if (keycloak && import.meta.env.VITE_KEYCLOAK_URL) {
       const discovery = import.meta.env.VITE_KEYCLOAK_URL.replace(/\/$/, '') +
         '/realms/banco-digital/.well-known/openid-configuration'
       fetch(discovery, { mode: 'no-cors', credentials: 'omit' }).catch(() => {})

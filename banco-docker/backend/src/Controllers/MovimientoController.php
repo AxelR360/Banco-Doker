@@ -5,8 +5,8 @@ class MovimientoController {
         $currentUser = Auth::requireAuth(['CLIENTE', 'ADMIN', 'ASESOR']);
         $body = Router::getJsonBody();
 
-        $origenId = (int)($body['id_cuenta_origen'] ?? 0);
-        $destino = trim((string)($body['id_cuenta_destino'] ?? ''));
+        $origenRaw = trim((string)($body['id_cuenta_origen'] ?? ''));
+        $destinoRaw = trim((string)($body['id_cuenta_destino'] ?? ''));
         $monto = (float)($body['monto'] ?? 0);
         $descripcion = trim($body['descripcion'] ?? 'Transferencia bancaria');
 
@@ -14,33 +14,40 @@ class MovimientoController {
         if ($monto <= 0) {
             Response::error('El monto debe ser mayor que cero (RN-02)', 400);
         }
-        if ($origenId <= 0 || !ctype_digit($destino) || (float)$destino <= 0) {
+        if (empty($origenRaw) || empty($destinoRaw)) {
             Response::error('Debe especificar cuenta origen y cuenta destino válidas', 400);
         }
+
         $db = Database::getConnection();
-        $stmtDestino = $db->prepare('SELECT id_cuenta FROM cuentas WHERE numero_cuenta = :destino');
-        $stmtDestino->execute(['destino' => $destino]);
-        $destinoId = (int) $stmtDestino->fetchColumn();
-        if ($destinoId === 0 && strlen($destino) < 10) {
-            $stmtDestino = $db->prepare('SELECT id_cuenta FROM cuentas WHERE id_cuenta = :destino');
-            $stmtDestino->execute(['destino' => $destino]);
-            $destinoId = (int) $stmtDestino->fetchColumn();
+
+        // Buscar cuenta origen por id_cuenta o numero_cuenta
+        $stmtOrig = $db->prepare("SELECT id_cuenta, id_cliente, estado, moneda FROM cuentas WHERE id_cuenta = :id OR numero_cuenta = :num LIMIT 1");
+        $stmtOrig->execute(['id' => (int)$origenRaw, 'num' => $origenRaw]);
+        $cuentaOrigen = $stmtOrig->fetch();
+
+        if (!$cuentaOrigen) {
+            Response::error('La cuenta de origen no existe', 404);
         }
-        if ($destinoId === 0) {
-            Response::error('La cuenta de destino no existe', 400);
+
+        // Buscar cuenta destino por id_cuenta o numero_cuenta
+        $stmtDest = $db->prepare("SELECT id_cuenta, id_cliente, estado, moneda FROM cuentas WHERE id_cuenta = :id OR numero_cuenta = :num LIMIT 1");
+        $stmtDest->execute(['id' => (int)$destinoRaw, 'num' => $destinoRaw]);
+        $cuentaDestino = $stmtDest->fetch();
+
+        if (!$cuentaDestino) {
+            Response::error('La cuenta de destino no existe', 404);
         }
+
+        $origenId = (int)$cuentaOrigen['id_cuenta'];
+        $destinoId = (int)$cuentaDestino['id_cuenta'];
+
         if ($origenId === $destinoId) {
             Response::error('No se puede transferir a la misma cuenta (RN-05)', 400);
         }
 
         // Validar que el cliente autenticado sea dueño de la cuenta origen (RN-08, RF-06)
-        if ($currentUser['rol'] === 'CLIENTE') {
-            $stmtAuth = $db->prepare("SELECT id_cliente FROM cuentas WHERE id_cuenta = :id");
-            $stmtAuth->execute(['id' => $origenId]);
-            $cuentaOrigenAuth = $stmtAuth->fetch();
-            if (!$cuentaOrigenAuth || (int)$cuentaOrigenAuth['id_cliente'] !== (int)$currentUser['id_cliente']) {
-                Response::error('No tienes autorización para realizar transferencias desde esta cuenta origen', 403);
-            }
+        if ($currentUser['rol'] === 'CLIENTE' && !empty($currentUser['id_cliente']) && (int)$cuentaOrigen['id_cliente'] !== (int)$currentUser['id_cliente']) {
+            Response::error('No tienes autorización para realizar transferencias desde esta cuenta origen', 403);
         }
 
         // Generar UUID único para la referencia (RN-07)
@@ -95,22 +102,22 @@ class MovimientoController {
     }
 
     public static function deposito(): void {
-        $currentUser = Auth::requireAuth(['ADMIN', 'ASESOR']);
+        $currentUser = Auth::requireAuth(['CLIENTE', 'ADMIN', 'ASESOR']);
         $body = Router::getJsonBody();
 
-        $idCuenta = (int)($body['id_cuenta'] ?? 0);
+        $cuentaRaw = trim((string)($body['id_cuenta'] ?? ''));
         $monto = (float)($body['monto'] ?? 0);
         $descripcion = trim($body['descripcion'] ?? 'Depósito de fondos');
 
-        if ($idCuenta <= 0 || $monto <= 0) {
+        if (empty($cuentaRaw) || $monto <= 0) {
             Response::error('Datos inválidos. El monto debe ser mayor a 0', 400);
         }
 
         $db = Database::getConnection();
         $db->beginTransaction();
         try {
-            $stmt = $db->prepare("SELECT estado, moneda FROM cuentas WHERE id_cuenta = :id FOR UPDATE");
-            $stmt->execute(['id' => $idCuenta]);
+            $stmt = $db->prepare("SELECT id_cuenta, id_cliente, estado, moneda FROM cuentas WHERE id_cuenta = :id OR numero_cuenta = :num FOR UPDATE");
+            $stmt->execute(['id' => (int)$cuentaRaw, 'num' => $cuentaRaw]);
             $cuenta = $stmt->fetch();
 
             if (!$cuenta) {
@@ -121,6 +128,13 @@ class MovimientoController {
                 $db->rollBack();
                 Response::error('La cuenta no está activa para recibir depósitos', 400);
             }
+
+            if ($currentUser['rol'] === 'CLIENTE' && !empty($currentUser['id_cliente']) && (int)$cuenta['id_cliente'] !== (int)$currentUser['id_cliente']) {
+                $db->rollBack();
+                Response::error('No tienes autorización para depositar en esta cuenta', 403);
+            }
+
+            $idCuenta = (int)$cuenta['id_cuenta'];
 
             $update = $db->prepare("UPDATE cuentas SET saldo = saldo + :monto WHERE id_cuenta = :id");
             $update->execute(['monto' => $monto, 'id' => $idCuenta]);

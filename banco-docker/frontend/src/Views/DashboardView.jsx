@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import {
   ArrowDownLeft, ArrowLeftRight, ArrowUpRight, Bell, ChevronDown,
   ChevronRight, CircleHelp, HandCoins, Landmark, Menu, Search, Settings,
-  ShieldCheck, LogOut, CheckCircle2, AlertCircle, X, CreditCard, Lock, Unlock
+  ShieldCheck, LogOut, CheckCircle2, AlertCircle, X, CreditCard, Lock, Unlock, PlusCircle
 } from 'lucide-react'
 
 export default function DashboardView({ controller }) {
@@ -11,7 +11,10 @@ export default function DashboardView({ controller }) {
     cuentas, tarjetas, movimientos, prestamos,
     showTransferModal, setShowTransferModal,
     showLoanModal, setShowLoanModal,
-    executeTransfer, toggleCardStatus, requestLoan, onLogout
+    showDepositModal, setShowDepositModal,
+    showCreateAccountModal, setShowCreateAccountModal,
+    executeTransfer, executeDeposit, executeCreateAccount,
+    toggleCardStatus, requestLoan, onLogout
   } = controller
 
   // Transfer form state
@@ -19,6 +22,15 @@ export default function DashboardView({ controller }) {
   const [transferDestino, setTransferDestino] = useState('')
   const [transferMonto, setTransferMonto] = useState('')
   const [transferDesc, setTransferDesc] = useState('')
+
+  // Deposit form state
+  const [depositCuenta, setDepositCuenta] = useState('')
+  const [depositMonto, setDepositMonto] = useState('')
+  const [depositDesc, setDepositDesc] = useState('')
+
+  // Create account form state
+  const [newAccTipo, setNewAccTipo] = useState('AHORROS')
+  const [newAccSaldo, setNewAccSaldo] = useState('100.00')
 
   // Loan form state
   const [loanMonto, setLoanMonto] = useState('')
@@ -40,24 +52,37 @@ export default function DashboardView({ controller }) {
     ? user.nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
     : 'US'
 
-  const [transferPending, setTransferPending] = useState(false)
-
-  const handleTransferSubmit = async (e) => {
+  const handleTransferSubmit = (e) => {
     e.preventDefault()
-    const origenId = transferOrigen || cuentas[0]?.id_cuenta
-    if (!origenId || transferPending) return
-    setTransferPending(true)
-    const success = await executeTransfer({
-      origenId,
+    executeTransfer({
+      origenId: transferOrigen || (cuentas[0] ? cuentas[0].id_cuenta : 1),
       destinoId: transferDestino,
       monto: transferMonto,
       descripcion: transferDesc || 'Transferencia inmediata'
     })
-    setTransferPending(false)
-    if (success) {
-      setTransferMonto('')
-      setTransferDestino('')
-    }
+    setTransferMonto('')
+    setTransferDestino('')
+    setTransferDesc('')
+  }
+
+  const handleDepositSubmit = (e) => {
+    e.preventDefault()
+    executeDeposit({
+      cuentaId: depositCuenta || (cuentas[0] ? cuentas[0].id_cuenta : 1),
+      monto: depositMonto,
+      descripcion: depositDesc || 'Depósito de fondos'
+    })
+    setDepositMonto('')
+    setDepositDesc('')
+  }
+
+  const handleCreateAccountSubmit = (e) => {
+    e.preventDefault()
+    executeCreateAccount({
+      tipo: newAccTipo,
+      saldoInicial: newAccSaldo
+    })
+    setNewAccSaldo('100.00')
   }
 
   const handleLoanSubmit = (e) => {
@@ -128,9 +153,14 @@ export default function DashboardView({ controller }) {
               <p>Sesión activa como {user.username}</p>
               <h1>Panel de Control · {user.rol}</h1>
             </div>
-            <button className="primary" onClick={() => setShowTransferModal(true)}>
-              <span>＋</span> Nueva transferencia
-            </button>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <button className="primary" style={{ background: '#10b981', borderColor: '#10b981' }} onClick={() => setShowDepositModal(true)}>
+                <span>＋</span> Depósito
+              </button>
+              <button className="primary" onClick={() => setShowTransferModal(true)}>
+                <span>＋</span> Nueva transferencia
+              </button>
+            </div>
           </div>
 
           <div className="balance-grid">
@@ -152,6 +182,24 @@ export default function DashboardView({ controller }) {
                 <span className="trend">{cuentas.length || 1} Activa(s)</span>
               </div>
               <strong>{cuentas.length ? cuentas[0].numero_cuenta : '2200000001'}</strong>
+              <div style={{ marginTop: '10px' }}>
+                <button
+                  type="button"
+                  style={{
+                    background: 'rgba(79, 70, 229, 0.08)',
+                    color: '#4f46e5',
+                    border: '1px solid rgba(79, 70, 229, 0.2)',
+                    padding: '5px 10px',
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => setShowCreateAccountModal(true)}
+                >
+                  ＋ Abrir otra cuenta
+                </button>
+              </div>
               <div className="bar-chart" aria-hidden="true">
                 {Array.from({ length: 7 }, (_, i) => <i key={i} />)}
               </div>
@@ -177,9 +225,9 @@ export default function DashboardView({ controller }) {
                 <div><strong>Transferir</strong><small>Enviar dinero entre cuentas</small></div>
                 <ChevronRight />
               </button>
-              <button onClick={() => notify('Depósitos gestionados por Asesor/Caja')}>
+              <button onClick={() => setShowDepositModal(true)}>
                 <span className="quick-icon green"><ArrowDownLeft /></span>
-                <div><strong>Depósito</strong><small>Añadir fondos ficticios</small></div>
+                <div><strong>Depósito</strong><small>Añadir fondos a la cuenta</small></div>
                 <ChevronRight />
               </button>
               <button onClick={() => setShowLoanModal(true)}>
@@ -197,7 +245,7 @@ export default function DashboardView({ controller }) {
                   <h2>Movimientos Recientes</h2>
                   <p>Trazabilidad y auditoría (RN-07, BD-08)</p>
                 </div>
-                <button onClick={() => notify('Mostrando historial completo')}>
+                <button onClick={() => notify('Historial actualizado')}>
                   Ver todos <ChevronRight size={16} />
                 </button>
               </div>
@@ -280,13 +328,13 @@ export default function DashboardView({ controller }) {
             <form onSubmit={handleTransferSubmit}>
               <div className="form-group">
                 <label>Cuenta de Origen</label>
-                <select value={transferOrigen || cuentas[0]?.id_cuenta || ''} onChange={(e) => setTransferOrigen(e.target.value)} required>
+                <select value={transferOrigen} onChange={(e) => setTransferOrigen(e.target.value)} required>
                   {cuentas.map(c => (
                     <option key={c.id_cuenta} value={c.id_cuenta}>
                       {c.numero_cuenta} ({c.tipo}) - Saldo: ${c.saldo}
                     </option>
                   ))}
-                  {cuentas.length === 0 && <option value="">No hay cuentas disponibles</option>}
+                  {cuentas.length === 0 && <option value="1">Cuenta Principal 2200000001 ($12,480.50)</option>}
                 </select>
               </div>
 
@@ -326,7 +374,99 @@ export default function DashboardView({ controller }) {
 
               <div className="modal-actions">
                 <button type="button" className="btn-cancel" onClick={() => setShowTransferModal(false)}>Cancelar</button>
-                <button type="submit" className="primary" disabled={transferPending || cuentas.length === 0}>Confirmar Transferencia</button>
+                <button type="submit" className="primary">Confirmar Transferencia</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DEPÓSITO */}
+      {showDepositModal && (
+        <div className="modal-backdrop">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3><ArrowDownLeft size={20} /> Realizar Depósito de Fondos</h3>
+              <button className="btn-close" onClick={() => setShowDepositModal(false)}><X size={18} /></button>
+            </div>
+            <form onSubmit={handleDepositSubmit}>
+              <div className="form-group">
+                <label>Cuenta de Destino</label>
+                <select value={depositCuenta} onChange={(e) => setDepositCuenta(e.target.value)} required>
+                  {cuentas.map(c => (
+                    <option key={c.id_cuenta} value={c.id_cuenta}>
+                      {c.numero_cuenta} ({c.tipo}) - Saldo actual: ${c.saldo}
+                    </option>
+                  ))}
+                  {cuentas.length === 0 && <option value="1">Cuenta Principal 2200000001</option>}
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Monto a Depositar ($ USD)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  placeholder="Ej. 100.00"
+                  value={depositMonto}
+                  onChange={(e) => setDepositMonto(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Concepto / Detalle</label>
+                <input
+                  type="text"
+                  placeholder="Ej. Depósito en efectivo, abono de nómina"
+                  value={depositDesc}
+                  onChange={(e) => setDepositDesc(e.target.value)}
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="btn-cancel" onClick={() => setShowDepositModal(false)}>Cancelar</button>
+                <button type="submit" className="primary" style={{ background: '#10b981', borderColor: '#10b981' }}>Confirmar Depósito</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL APERTURA NUEVA CUENTA */}
+      {showCreateAccountModal && (
+        <div className="modal-backdrop">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3><Landmark size={20} /> Apertura de Nueva Cuenta Bancaria</h3>
+              <button className="btn-close" onClick={() => setShowCreateAccountModal(false)}><X size={18} /></button>
+            </div>
+            <form onSubmit={handleCreateAccountSubmit}>
+              <div className="form-group">
+                <label>Tipo de Cuenta</label>
+                <select value={newAccTipo} onChange={(e) => setNewAccTipo(e.target.value)}>
+                  <option value="AHORROS">Cuenta de Ahorros</option>
+                  <option value="CORRIENTE">Cuenta Corriente</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>Depósito Inicial ($ USD)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.00"
+                  placeholder="Ej. 100.00"
+                  value={newAccSaldo}
+                  onChange={(e) => setNewAccSaldo(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="btn-cancel" onClick={() => setShowCreateAccountModal(false)}>Cancelar</button>
+                <button type="submit" className="primary">Abrir Cuenta</button>
               </div>
             </form>
           </div>

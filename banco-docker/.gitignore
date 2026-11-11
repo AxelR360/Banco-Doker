@@ -6,6 +6,8 @@
 # Dependencias
 node_modules/
 **/node_modules/
+vendor/
+**/vendor/
 
 # Archivos temporales
 *.log

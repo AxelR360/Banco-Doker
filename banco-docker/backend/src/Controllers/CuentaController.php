@@ -55,10 +55,13 @@ class CuentaController {
     }
 
     public static function create(): void {
-        Auth::requireAuth(['ADMIN', 'ASESOR']);
+        $currentUser = Auth::requireAuth(['CLIENTE', 'ADMIN', 'ASESOR']);
         $body = Router::getJsonBody();
 
-        $idCliente = (int)($body['id_cliente'] ?? 0);
+        $idCliente = ($currentUser['rol'] === 'CLIENTE')
+            ? (int)($currentUser['id_cliente'] ?? 0)
+            : (int)($body['id_cliente'] ?? $currentUser['id_cliente'] ?? 0);
+
         $tipo = strtoupper(trim($body['tipo'] ?? 'AHORROS'));
         $moneda = strtoupper(trim($body['moneda'] ?? 'USD'));
         $saldoInicial = (float)($body['saldo'] ?? 0.0);

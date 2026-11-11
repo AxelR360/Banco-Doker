@@ -6,7 +6,7 @@ Proyecto académico desarrollado según la norma **IEEE Std 830-1998**.
 * **Backend**: PHP 8.3 (API REST estructurada en capas, PDO MySQL y validación JWT).
 * **Frontend**: JavaScript / React + Lucide Icons (construido con Vite).
 * **Servidor Web & Proxy Inverso**: Nginx Alpine en el puerto `80`.
-* **Identidad & SSO / OIDC**: Keycloak 24.0 en el puerto `8080`.
+* **Identidad & SSO / OIDC**: Keycloak 24.0 en el puerto `8085`.
 * **Base de Datos**: MySQL 8.4 (InnoDB con procedimientos almacenados y triggers) en puerto `3307`.
 * **Administrador BD**: phpMyAdmin en puerto `8081`.
 
@@ -14,19 +14,20 @@ Proyecto académico desarrollado según la norma **IEEE Std 830-1998**.
 
 ## 🚀 Despliegue en Docker Compose
 
-1. Abre **Docker Desktop**.
-2. En esta carpeta ejecuta:
+1. Asegúrate de tener **Docker Desktop** abierto y en ejecución.
+2. Desde la terminal en la carpeta `banco-docker`:
    ```bash
    docker compose up -d --build
    ```
 
 ### 🔗 Puntos de acceso:
-* 🌐 **Aplicación Web (Nginx)**: [http://localhost](http://localhost)
-* 🔐 **Keycloak SSO (IAM/OIDC)**: [http://localhost:8080](http://localhost:8080)
+* 🌐 **Aplicación Web Frontend (Nginx SPA React)**: [http://localhost](http://localhost)
+* 🔐 **Keycloak SSO (IAM/OIDC)**: [http://localhost:8085](http://localhost:8085)
   * Consola de administración: usuario `admin` / clave `admin`
-  * Realm: `banco-digital`
+  * Realm importado automáticamente: `banco-digital`
 * 🗄️ **phpMyAdmin**: [http://localhost:8081](http://localhost:8081)
 * 🐬 **MySQL**: `localhost:3307` (usuario `banco_user`, clave `12345`, db `banco_digital`)
+* 📑 **Vistas PHP Clásicas**: [http://localhost/login.php](http://localhost/login.php) y [http://localhost/dashboard.php](http://localhost/dashboard.php)
 
 ---
 

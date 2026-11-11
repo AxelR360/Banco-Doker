@@ -16,9 +16,9 @@ class AuthController {
                    c.identificacion, c.nombres, c.apellidos, c.correo
             FROM usuarios u
             LEFT JOIN clientes c ON u.id_cliente = c.id_cliente
-            WHERE u.username = :username
+            WHERE u.username = :input1 OR c.identificacion = :input2
         ");
-        $stmt->execute(['username' => $username]);
+        $stmt->execute(['input1' => $username, 'input2' => $username]);
         $user = $stmt->fetch();
 
         if (!$user) {

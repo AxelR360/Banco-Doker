@@ -9,7 +9,7 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
   // Login state
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  
+
   // Register state
   const [regNombres, setRegNombres] = useState('')
   const [regApellidos, setRegApellidos] = useState('')
@@ -41,11 +41,11 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
       try {
         data = JSON.parse(text)
       } catch {
-        throw new Error('El backend PHP aÃºn no responde JSON. AsegÃºrate de ejecutar: docker compose up -d --build')
+        throw new Error('El backend PHP aún no responde JSON. Asegúrate de que el backend esté en ejecución.')
       }
 
       if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Error al iniciar sesiÃ³n')
+        throw new Error(data.message || 'Error al iniciar sesión')
       }
 
       localStorage.setItem('nexo_token', data.data.token)
@@ -55,7 +55,7 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
         onLoginSuccess(data.data.user, data.data.token)
       }
     } catch (err) {
-      setError(err.message || 'Error de conexiÃ³n con el servidor')
+      setError(err.message || 'Error de conexión con el servidor')
     } finally {
       setLoading(false)
     }
@@ -87,7 +87,7 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
       try {
         data = JSON.parse(text)
       } catch {
-        throw new Error('El backend PHP aÃºn no responde JSON. AsegÃºrate de ejecutar: docker compose up -d --build')
+        throw new Error('El backend PHP no devolvió una respuesta válida.')
       }
 
       if (!res.ok || !data.success) {
@@ -97,7 +97,7 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
       localStorage.setItem('nexo_token', data.data.token)
       localStorage.setItem('nexo_user', JSON.stringify(data.data.user))
 
-      setSuccessMsg('Â¡Usuario y cuenta bancaria creados con Ã©xito! Ingresando...')
+      setSuccessMsg('¡Usuario y cuenta bancaria creados con éxito! Ingresando...')
       setTimeout(() => {
         if (onLoginSuccess) {
           onLoginSuccess(data.data.user, data.data.token)
@@ -115,7 +115,7 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
       await initKeycloak()
       await keycloak.login({ redirectUri: window.location.origin + '/' })
     } catch {
-      setError('No se pudo iniciar con Keycloak.')
+      setError('No se pudo conectar con el servidor de autenticación Keycloak.')
     }
   }
 
@@ -136,19 +136,19 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
           <p>Sistema Bancario Digital · UTLVTE Grupo #4</p>
         </div>
 
-        {/* PestaÃ±as Iniciar Sesión / Crear Usuario */}
+        {/* Pestañas Iniciar Sesión / Crear Usuario */}
         <div className="auth-tabs">
           <button
             type="button"
             className={`auth-tab ${tab === 'login' ? 'active' : ''}`}
-            onClick={() => { setTab('login'); setError(''); }}
+            onClick={() => { setTab('login'); setError(''); setSuccessMsg(''); }}
           >
             Iniciar Sesión
           </button>
           <button
             type="button"
             className={`auth-tab ${tab === 'register' ? 'active' : ''}`}
-            onClick={() => { setTab('register'); setError(''); }}
+            onClick={() => { setTab('register'); setError(''); setSuccessMsg(''); }}
           >
             <UserPlus size={16} /> Crear Usuario
           </button>
@@ -159,13 +159,13 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
 
         {tab === 'login' ? (
           <>
-            {ssoError && <p role="alert">No se pudo validar el acceso con Keycloak.</p>}
+            {ssoError && <p role="alert" className="login-alert error">No se pudo validar el acceso con Keycloak.</p>}
             {keycloak && (
             <button
               type="button"
               onClick={loginWithKeycloakSSO}
               className="btn-keycloak-sso"
-              title="Iniciar sesiÃ³n mediante Keycloak IAM / OIDC"
+              title="Iniciar sesión mediante Keycloak IAM / OIDC"
             >
               <KeyRound size={18} />
               <span>Iniciar con <strong>Keycloak SSO</strong></span>
@@ -259,7 +259,7 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
 
             <div className="form-row">
               <div className="form-group">
-                <label>CÃ©dula / IdentieicaciÃ³n</label>
+                <label>Cédula / Identificación</label>
                 <input
                   type="text"
                   placeholder="Ej. 0801234567"
@@ -270,7 +270,7 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
                 />
               </div>
               <div className="form-group">
-                <label>TelÃ©eono</label>
+                <label>Teléfono</label>
                 <input
                   type="text"
                   placeholder="0991234567"
@@ -281,7 +281,7 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
             </div>
 
             <div className="form-group">
-              <label>Correo ElectrÃ³nico</label>
+              <label>Correo Electrónico</label>
               <input
                 type="email"
                 placeholder="juan.perez@ejemplo.test"
@@ -321,13 +321,10 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
           </form>
         )}
 
-        <div className="login-eooter">
+        <div className="login-footer">
           <small>PHP · JavaScript / React · MySQL · Nginx · Keycloak</small>
         </div>
       </div>
     </div>
   )
 }
-
-
-

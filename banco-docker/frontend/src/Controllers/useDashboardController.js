@@ -1,6 +1,6 @@
 ﻿import API_URL from '../api'
 import { useState, useEffect } from 'react'
-import { ArrowLeft, CreditCard, HandCoins, Home, WalletCards, Users, FileText, CheckCircle2 } from 'lucide-react'
+import { ArrowLeftRight, CreditCard, HandCoins, Home, WalletCards, Users, FileText } from 'lucide-react'
 
 export function useDashboardController(initialUser, onLogout) {
   const [user, setUser] = useState(initialUser || {
@@ -22,13 +22,14 @@ export function useDashboardController(initialUser, onLogout) {
   const [showTransferModal, setShowTransferModal] = useState(false)
   const [showLoanModal, setShowLoanModal] = useState(false)
   const [showDepositModal, setShowDepositModal] = useState(false)
+  const [showCreateAccountModal, setShowCreateAccountModal] = useState(false)
 
   const token = localStorage.getItem('nexo_token')
 
   const notify = (message) => {
     setToast(message)
     window.clearTimeout(window.__nexoToastTimer)
-    window.__nexoToastTimer = window.setTimeout(() => setToast(''), 3000)
+    window.__nexoToastTimer = window.setTimeout(() => setToast(''), 3500)
   }
 
   // Cargar datos de la API
@@ -65,7 +66,7 @@ export function useDashboardController(initialUser, onLogout) {
         setTarjetas(dataTarjetas.data)
       }
 
-      // 3. PrÃ©stamos
+      // 3. Préstamos
       const resPrestamos = await fetch(`${API_URL}/api/v1/prestamos`, {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -82,24 +83,30 @@ export function useDashboardController(initialUser, onLogout) {
     refreshData()
   }, [])
 
-  // NavegaciÃ³n segÃºn el rol (IU-02)
+  // Navegación según el rol (IU-02)
   const navigation = user.rol === 'CLIENTE' ? [
     { label: 'Inicio', icon: Home },
     { label: 'Mis cuentas', icon: WalletCards },
-    { label: 'Transferencias', icon: ArrowLeft },
+    { label: 'Transferencias', icon: ArrowLeftRight },
     { label: 'Tarjetas', icon: CreditCard },
-    { label: 'PrÃ©stamos', icon: HandCoins },
+    { label: 'Préstamos', icon: HandCoins },
   ] : [
     { label: 'Inicio', icon: Home },
-    { label: 'GestiÃ³n Clientes', icon: Users },
-    { label: 'Cuentas & DepÃ³sitos', icon: WalletCards },
-    { label: 'Evaluar PrÃ©stamos', icon: FileText },
+    { label: 'Gestión Clientes', icon: Users },
+    { label: 'Cuentas & Depósitos', icon: WalletCards },
+    { label: 'Evaluar Préstamos', icon: FileText },
   ]
 
   const selectSection = (section) => {
     setActive(section)
-    if (section === 'Transferencias') setShowTransferModal(true)
     setMenuOpen(false)
+    if (section === 'Transferencias' || section === 'Transeerencias') {
+      setShowTransferModal(true)
+    } else if (section === 'Cuentas & Depósitos' || section === 'Cuentas & DepÃ³sitos') {
+      setShowDepositModal(true)
+    } else if (section === 'Préstamos' || section === 'PrÃ©stamos' || section === 'Evaluar Préstamos' || section === 'Evaluar PrÃ©stamos') {
+      setShowLoanModal(true)
+    }
   }
 
   // Realizar transferencia (CU-02, RF-11)
@@ -115,19 +122,79 @@ export function useDashboardController(initialUser, onLogout) {
           id_cuenta_origen: origenId,
           id_cuenta_destino: destinoId,
           monto: parseFloat(monto),
-          descripcion
+          descripcion: descripcion || 'Transferencia inmediata'
         })
       })
       const result = await res.json()
       if (!res.ok || !result.success) {
         throw new Error(result.message || 'Error en la transferencia')
       }
-      notify(`âœ… Transferencia exitosa. Ref: ${result.data.referencia.substring(0, 8)}`)
+      const ref = result.data?.referencia ? result.data.referencia.substring(0, 8) : 'OK'
+      notify(`✅ Transferencia exitosa. Ref: ${ref}`)
       setShowTransferModal(false)
       refreshData()
       return true
     } catch (err) {
-      notify(`âŒ ${err.message}`)
+      notify(`❌ ${err.message}`)
+      return false
+    }
+  }
+
+  // Realizar depósito de fondos
+  const executeDeposit = async ({ cuentaId, monto, descripcion }) => {
+    try {
+      const res = await fetch(`${API_URL}/api/v1/movimientos/deposito`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          id_cuenta: cuentaId,
+          monto: parseFloat(monto),
+          descripcion: descripcion || 'Depósito en efectivo'
+        })
+      })
+      const result = await res.json()
+      if (!res.ok || !result.success) {
+        throw new Error(result.message || 'Error en el depósito')
+      }
+      notify(`✅ Depósito de $${parseFloat(monto).toFixed(2)} acreditado correctamente`)
+      setShowDepositModal(false)
+      refreshData()
+      return true
+    } catch (err) {
+      notify(`❌ ${err.message}`)
+      return false
+    }
+  }
+
+  // Crear nueva cuenta bancaria
+  const executeCreateAccount = async ({ tipo, saldoInicial }) => {
+    try {
+      const res = await fetch(`${API_URL}/api/v1/cuentas`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          id_cliente: user.id_cliente,
+          tipo: tipo || 'AHORROS',
+          moneda: 'USD',
+          saldo: parseFloat(saldoInicial || 0)
+        })
+      })
+      const result = await res.json()
+      if (!res.ok || !result.success) {
+        throw new Error(result.message || 'Error al abrir la cuenta')
+      }
+      notify(`✅ Cuenta creada exitosamente: ${result.data?.numero_cuenta || ''}`)
+      setShowCreateAccountModal(false)
+      refreshData()
+      return true
+    } catch (err) {
+      notify(`❌ ${err.message}`)
       return false
     }
   }
@@ -153,7 +220,7 @@ export function useDashboardController(initialUser, onLogout) {
     }
   }
 
-  // Solicitar prÃ©stamo (RF-14, CU-03)
+  // Solicitar préstamo (RF-14, CU-03)
   const requestLoan = async ({ monto, plazo }) => {
     try {
       const res = await fetch(`${API_URL}/api/v1/prestamos`, {
@@ -166,11 +233,11 @@ export function useDashboardController(initialUser, onLogout) {
       })
       const result = await res.json()
       if (!res.ok || !result.success) throw new Error(result.message)
-      notify(`âœ… Solicitud de prÃ©stamo enviada (Estado: SOLICITADO)`)
+      notify(`✅ Solicitud de préstamo enviada (Estado: SOLICITADO)`)
       setShowLoanModal(false)
       refreshData()
     } catch (err) {
-      notify(`âŒ Error: ${err.message}`)
+      notify(`❌ Error: ${err.message}`)
     }
   }
 
@@ -193,13 +260,14 @@ export function useDashboardController(initialUser, onLogout) {
     setShowLoanModal,
     showDepositModal,
     setShowDepositModal,
+    showCreateAccountModal,
+    setShowCreateAccountModal,
     executeTransfer,
+    executeDeposit,
+    executeCreateAccount,
     toggleCardStatus,
     requestLoan,
+    refreshData,
     onLogout
   }
 }
-
-
-
-

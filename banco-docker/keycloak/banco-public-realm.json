@@ -1,26 +1,55 @@
 {
+  "id": "banco-digital",
   "realm": "banco-digital",
+  "displayName": "Sistema Bancario Digital - Grupo #4",
   "enabled": true,
+  "sslRequired": "none",
   "registrationAllowed": false,
-  "bruteForceProtected": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "roles": {
+    "realm": [
+      {
+        "name": "ADMIN",
+        "description": "Administrador de la plataforma bancaria"
+      },
+      {
+        "name": "ASESOR",
+        "description": "Asesor bancario"
+      },
+      {
+        "name": "CLIENTE",
+        "description": "Cliente bancario final"
+      }
+    ]
+  },
   "clients": [
     {
       "clientId": "banco-frontend",
+      "name": "Frontend NexoBank",
+      "description": "Cliente OIDC público para la aplicación web React",
       "enabled": true,
-      "protocol": "openid-connect",
       "publicClient": true,
+      "directAccessGrantsEnabled": true,
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": false,
       "redirectUris": [
-        "https://banco-dokr.onrender.com/"
+        "https://banco-dokr.onrender.com/*",
+        "https://banco-dokr.onrender.com/",
+        "http://localhost/*",
+        "http://localhost:80/*",
+        "http://localhost:5173/*",
+        "http://127.0.0.1/*"
       ],
       "webOrigins": [
+        "*",
         "https://banco-dokr.onrender.com"
       ],
       "attributes": {
         "pkce.code.challenge.method": "S256",
-        "post.logout.redirect.uris": "https://banco-dokr.onrender.com/"
+        "post.logout.redirect.uris": "https://banco-dokr.onrender.com/*##http://localhost/*"
       },
       "protocolMappers": [
         {
@@ -33,6 +62,87 @@
             "id.token.claim": "false"
           }
         }
+      ],
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "roles",
+        "profile",
+        "email"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "00000000-0000-0000-0000-000000000001",
+      "username": "admin",
+      "enabled": true,
+      "email": "admin@bancodigital.test",
+      "firstName": "Administrador",
+      "lastName": "General",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "12345",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ADMIN"
+      ]
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000002",
+      "username": "asesor1",
+      "enabled": true,
+      "email": "asesor1@bancodigital.test",
+      "firstName": "Carlos",
+      "lastName": "Asesor",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "12345",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "ASESOR"
+      ]
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000003",
+      "username": "axel.rosero",
+      "enabled": true,
+      "email": "axel.rosero@ejemplo.test",
+      "firstName": "Axel",
+      "lastName": "Rosero",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "12345",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "CLIENTE"
+      ]
+    },
+    {
+      "id": "00000000-0000-0000-0000-000000000004",
+      "username": "melany.zambrano",
+      "enabled": true,
+      "email": "melany.zambrano@ejemplo.test",
+      "firstName": "Melany",
+      "lastName": "Zambrano",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "12345",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "CLIENTE"
       ]
     }
   ]
