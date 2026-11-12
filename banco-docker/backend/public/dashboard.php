@@ -12,6 +12,10 @@ require_once __DIR__ . '/../src/Database.php';
 
 $user = $_SESSION['user'];
 $db = Database::getConnection();
+$puedeEvaluarPrestamos = in_array($user['rol'], ['ADMIN', 'ASESOR'], true);
+if ($puedeEvaluarPrestamos) {
+    $_SESSION['prestamo_csrf'] ??= bin2hex(random_bytes(32));
+}
 
 $flashSuccess = '';
 $flashError = '';
@@ -56,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // 2. SOLICITUD DE PRÉSTAMO (CU-03, RF-14)
-    elseif ($action === 'prestamo') {
+    elseif ($action === 'prestamo' && $user['rol'] === 'CLIENTE') {
         $monto = (float)($_POST['monto'] ?? 0);
         $plazo = (int)($_POST['plazo_meses'] ?? 12);
 
@@ -68,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 VALUES (:cli, :monto, :plazo, 14.50, 'SOLICITADO', NOW())
             ");
             $stmtP->execute([
-                'cli'   => $user['id_cliente'] ?: 1,
+                'cli'   => $user['id_cliente'],
                 'monto' => $monto,
                 'plazo' => $plazo
             ]);
@@ -88,16 +92,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // 4. ASESOR/ADMIN: EVALUAR PRÉSTAMO (RF-15)
-    elseif ($action === 'evaluar_prestamo' && in_array($user['rol'], ['ADMIN', 'ASESOR'])) {
+    elseif ($action === 'evaluar_prestamo' && $puedeEvaluarPrestamos) {
         $idPrestamo = (int)($_POST['id_prestamo'] ?? 0);
-        $nuevoEstado = $_POST['nuevo_estado'] ?? 'APROBADO';
-
-        $stmtEv = $db->prepare("
-            UPDATE prestamos SET estado = :est, id_evaluador = :eval, resuelto_en = NOW()
-            WHERE id_prestamo = :id
-        ");
-        $stmtEv->execute(['est' => $nuevoEstado, 'eval' => $user['id_usuario'], 'id' => $idPrestamo]);
-        $flashSuccess = "Préstamo marcado como {$nuevoEstado}.";
+        $csrf = $_POST['prestamo_csrf'] ?? '';
+        if (!is_string($csrf) || !hash_equals($_SESSION['prestamo_csrf'], $csrf) || $idPrestamo <= 0) {
+            $flashError = 'No se pudo validar la aprobación. Recarga el panel e inténtalo de nuevo.';
+        } else {
+            $stmtEv = $db->prepare("
+                UPDATE prestamos SET estado = 'APROBADO', id_evaluador = :eval, resuelto_en = NOW()
+                WHERE id_prestamo = :id AND estado IN ('SOLICITADO', 'EN_REVISION')
+            ");
+            $stmtEv->execute(['eval' => $user['id_usuario'], 'id' => $idPrestamo]);
+            if ($stmtEv->rowCount() === 1) {
+                $flashSuccess = "Préstamo #{$idPrestamo} aprobado.";
+            } else {
+                $flashError = 'La solicitud ya fue resuelta o no existe.';
+            }
+        }
     }
 }
 
@@ -160,7 +171,7 @@ if ($user['rol'] === 'CLIENTE') {
         SELECT p.*, cl.nombres, cl.apellidos, cl.identificacion 
         FROM prestamos p 
         JOIN clientes cl ON p.id_cliente = cl.id_cliente 
-        ORDER BY p.id_prestamo DESC LIMIT 10
+        ORDER BY (p.estado IN ('SOLICITADO', 'EN_REVISION')) DESC, p.id_prestamo DESC
     ");
 }
 $prestamos = $stmtPres->fetchAll();
@@ -361,8 +372,9 @@ if ($saldoTotal === 0 && !empty($cuentas)) {
 
         <!-- SOLICITAR PRÉSTAMO (CU-03, RF-14) -->
         <div class="panel" id="prestamos">
-          <h3>📑 Solicitar Préstamo Simulado</h3>
-          <form method="POST" action="/">
+          <h3><?= $puedeEvaluarPrestamos ? 'Solicitudes de préstamos' : 'Solicitar Préstamo Simulado' ?></h3>
+          <?php if (!$puedeEvaluarPrestamos): ?>
+          <form method="POST" action="/dashboard.php#prestamos">
             <input type="hidden" name="action" value="prestamo">
 
             <div class="form-group">
@@ -382,19 +394,39 @@ if ($saldoTotal === 0 && !empty($cuentas)) {
 
             <button type="submit" class="btn-primary" style="margin-top: 10px;">Solicitar Préstamo ➔</button>
           </form>
+          <?php endif; ?>
 
           <?php if (!empty($prestamos)): ?>
             <div style="margin-top: 20px;">
-              <small style="font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Mis Solicitudes:</small>
+              <?php if (!$puedeEvaluarPrestamos): ?>
+                <small style="font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Mis solicitudes</small>
+              <?php endif; ?>
               <ul style="list-style: none; margin-top: 8px;">
                 <?php foreach ($prestamos as $p): ?>
                   <li style="padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px; display: flex; justify-content: space-between;">
-                    <span>$<?= number_format($p['monto'], 2) ?> (<?= $p['plazo_meses'] ?> meses)</span>
-                    <strong style="color: var(--primary);"><?= $p['estado'] ?></strong>
+                    <span>
+                      <?php if ($puedeEvaluarPrestamos): ?>
+                        #<?= (int)$p['id_prestamo'] ?> · <?= htmlspecialchars($p['nombres'] . ' ' . $p['apellidos']) ?><br>
+                      <?php endif; ?>
+                      $<?= number_format($p['monto'], 2) ?> (<?= $p['plazo_meses'] ?> meses)
+                    </span>
+                    <div>
+                      <strong style="color: var(--primary);"><?= htmlspecialchars($p['estado']) ?></strong>
+                      <?php if ($puedeEvaluarPrestamos && in_array($p['estado'], ['SOLICITADO', 'EN_REVISION'], true)): ?>
+                        <form method="POST" action="/dashboard.php#prestamos">
+                          <input type="hidden" name="action" value="evaluar_prestamo">
+                          <input type="hidden" name="id_prestamo" value="<?= (int)$p['id_prestamo'] ?>">
+                          <input type="hidden" name="prestamo_csrf" value="<?= htmlspecialchars($_SESSION['prestamo_csrf']) ?>">
+                          <button type="submit" class="btn-primary">Aprobar</button>
+                        </form>
+                      <?php endif; ?>
+                    </div>
                   </li>
                 <?php endforeach; ?>
               </ul>
             </div>
+          <?php else: ?>
+            <p>Todavía no hay solicitudes.</p>
           <?php endif; ?>
         </div>
       </div>
