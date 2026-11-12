@@ -5,6 +5,7 @@ export default function AdministrationPanel({ user }) {
   const [clients, setClients] = useState([])
   const [loans, setLoans] = useState([])
   const [reports, setReports] = useState(null)
+  const [users, setUsers] = useState([])
   const [message, setMessage] = useState('')
   async function request(path, method = 'GET', body) {
     const response = await fetch(API_URL + '/api/v1' + path, {
@@ -20,7 +21,10 @@ export default function AdministrationPanel({ user }) {
     try {
       setClients(await request('/clientes'))
       setLoans(await request('/prestamos'))
-      if (user.rol === 'ADMIN') setReports(await request('/reportes'))
+      if (user.rol === 'ADMIN') {
+        setReports(await request('/reportes'))
+        setUsers(await request('/usuarios'))
+      }
     } catch (error) { setMessage(error.message) }
   }
   useEffect(() => { reload() }, [])
@@ -39,9 +43,31 @@ export default function AdministrationPanel({ user }) {
       await reload()
     } catch (error) { setMessage(error.message) }
   }
+  async function linkUser(event) {
+    event.preventDefault()
+    const form = event.currentTarget
+    try {
+      await request('/usuarios', 'POST', Object.fromEntries(new FormData(form)))
+      form.reset()
+      setMessage('Usuario vinculado')
+      await reload()
+    } catch (error) { setMessage(error.message) }
+  }
   return <section className="admin-panel">
     <h2>Administración</h2>
     {message && <p role="status">{message}</p>}
+    {user.rol === 'ADMIN' && <>
+      <h3>Usuarios de Keycloak</h3>
+      <p>Vincula el ID de un usuario existente en Keycloak con su perfil del banco.</p>
+      <form onSubmit={linkUser}>
+        <label>ID de Keycloak<input name="keycloak_id" required minLength={36} maxLength={36} /></label>
+        <label>Usuario<input name="username" required maxLength={60} /></label>
+        <label>Rol<select name="rol"><option>CLIENTE</option><option>ASESOR</option><option>ADMIN</option></select></label>
+        <label>ID del cliente<input name="id_cliente" type="number" min="1" /></label>
+        <button type="submit">Vincular usuario</button>
+      </form>
+      {users.map(item => <p key={item.id_usuario}>{item.username} · {item.rol} · {item.estado}</p>)}
+    </>}
     <h3>Solicitudes de préstamos</h3>
     {loans.map(loan => <article key={loan.id_prestamo}>
       <strong>{loan.nombres} {loan.apellidos}</strong>

@@ -82,3 +82,34 @@ Todas las rutas de esta tabla se agregan a la base `/api/v1`.
 | PATCH | `/prestamos/{id}/estado` | Cambiar el estado de un préstamo (ADMIN, ASESOR) |
 | GET | `/tarjetas/mias` | Listar tarjetas visibles para el usuario |
 | PATCH | `/tarjetas/{id}/estado` | Cambiar el estado de una tarjeta |
+
+## Administración
+
+El frontend ofrece un panel para ADMIN y ASESOR con edición de correo, teléfono y dirección de clientes y evaluación de préstamos. ADMIN también puede ver reportes y vincular el ID de un usuario existente de Keycloak con su perfil local.
+
+| Método | Ruta | Permiso |
+| --- | --- | --- |
+| PATCH | /api/v1/clientes/{id} | ADMIN, ASESOR |
+| GET | /api/v1/reportes | ADMIN |
+| GET | /api/v1/usuarios | ADMIN |
+| POST | /api/v1/usuarios | ADMIN |
+
+La vinculación recibe keycloak_id, username, rol e id_cliente. El rol CLIENTE requiere un cliente activo. El historial admite pagina (desde 1), limite (1 a 100) y tipo (DEPOSITO, RETIRO o TRANSFERENCIA).
+
+## Respaldo y restauración
+
+En Docker, crea un respaldo desde el cliente MySQL del contenedor. El archivo queda primero dentro del contenedor y después se copia al equipo. Ejecuta desde banco-docker.
+
+~~~powershell
+docker compose exec mysql sh -c 'MYSQL_PWD=$MYSQL_ROOT_PASSWORD mysqldump -uroot --single-transaction --routines --triggers --no-tablespaces banco_digital > /tmp/banco-respaldo.sql'
+docker cp banco-mysql:/tmp/banco-respaldo.sql ./banco-respaldo.sql
+~~~
+
+Para restaurar en un entorno de recuperación, copia el respaldo al contenedor y cárgalo con el cliente MySQL. La restauración reemplaza las tablas incluidas en el respaldo.
+
+~~~powershell
+docker cp ./banco-respaldo.sql banco-mysql:/tmp/banco-restaurar.sql
+docker compose exec mysql sh -c 'MYSQL_PWD=$MYSQL_ROOT_PASSWORD mysql -uroot banco_digital < /tmp/banco-restaurar.sql'
+~~~
+
+En Aiven usa MySQL Workbench conectado mediante TLS. En Server > Data Export selecciona el esquema configurado en DB_NAME, incluye estructura, datos, rutinas y triggers, y exporta a un archivo SQL. Para comprobar la recuperación, importa ese archivo mediante Server > Data Import a una base de prueba y verifica el número de clientes, cuentas y movimientos. Conserva los respaldos fuera del repositorio.

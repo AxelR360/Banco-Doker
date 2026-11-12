@@ -34,6 +34,8 @@ if (str_starts_with($uri, '/api/')) {
     $router = new Router();
     $router->patch('/api/v1/clientes/{id}', [AdministracionController::class, 'actualizarCliente']);
     $router->get('/api/v1/reportes', [AdministracionController::class, 'reportes']);
+    $router->get('/api/v1/usuarios', [AdministracionController::class, 'usuarios']);
+    $router->post('/api/v1/usuarios', [AdministracionController::class, 'vincularUsuario']);
     $router->post('/api/v1/auth/login',    [AuthController::class, 'login']);
     $router->post('/api/v1/auth/registro', [AuthController::class, 'registro']);
     $router->get('/api/v1/auth/me',        [AuthController::class, 'me']);

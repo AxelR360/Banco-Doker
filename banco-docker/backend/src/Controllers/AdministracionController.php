@@ -1,5 +1,38 @@
 <?php
 class AdministracionController {
+    public static function usuarios(): void {
+        Auth::requireAuth(['ADMIN']);
+        Response::json(Database::getConnection()->query(
+            'SELECT id_usuario, username, keycloak_id, rol, id_cliente, estado FROM usuarios ORDER BY username'
+        )->fetchAll());
+    }
+
+    public static function vincularUsuario(): void {
+        Auth::requireAuth(['ADMIN']);
+        $body = Router::getJsonBody();
+        $sub = trim($body['keycloak_id'] ?? '');
+        $username = trim($body['username'] ?? '');
+        $rol = $body['rol'] ?? '';
+        $cliente = (int)($body['id_cliente'] ?? 0);
+        if (!preg_match('/^[0-9a-f-]{36}$/iD', $sub) || $username === '' || strlen($username) > 60
+            || !in_array($rol, ['ADMIN', 'ASESOR', 'CLIENTE'], true) || ($rol === 'CLIENTE' && $cliente <= 0)) {
+            Response::error('Indica el ID de Keycloak, usuario, rol y cliente asociado cuando corresponda', 400);
+        }
+        $db = Database::getConnection();
+        if ($cliente > 0) {
+            $stmt = $db->prepare("SELECT id_cliente FROM clientes WHERE id_cliente = ? AND estado = 'ACTIVO'");
+            $stmt->execute([$cliente]);
+            if (!$stmt->fetch()) Response::error('Cliente activo no encontrado', 404);
+        }
+        try {
+            $stmt = $db->prepare("INSERT INTO usuarios (keycloak_id, username, rol, id_cliente, estado) VALUES (?, ?, ?, ?, 'ACTIVO')");
+            $stmt->execute([$sub, $username, $rol, $cliente ?: null]);
+        } catch (PDOException $error) {
+            if (($error->errorInfo[1] ?? 0) === 1062) Response::error('El usuario o cliente ya está vinculado', 409);
+            throw $error;
+        }
+        Response::json(['id_usuario' => (int)$db->lastInsertId()], 201, 'Usuario de Keycloak vinculado');
+    }
     public static function reportes(): void {
         Auth::requireAuth(['ADMIN']);
         $db = Database::getConnection();
