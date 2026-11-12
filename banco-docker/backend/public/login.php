@@ -183,7 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NexoBank · Sistema Bancario Digital en PHP</title>
-  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/style.css?v=<?= filemtime(__DIR__ . '/css/style.css') ?>">
 </head>
 <body>
 <div class="auth-wrapper">
@@ -191,13 +191,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="brand-header">
       <div class="brand-icon">🏛️</div>
       <h1>Nexo<span>Bank</span></h1>
-      <p>Sistema Bancario Digital · UTLVTE Grupo #4 (PHP & MySQL)</p>
+      <p>Tu banco, siempre contigo</p>
+    </div>
+    <div class="welcome-illustration">
+      <span aria-hidden="true">🏛️</span>
+      <p>Hola, te damos la bienvenida</p>
     </div>
 
     <!-- Pestañas Iniciar Sesión / Crear Cuenta -->
     <div class="auth-tabs">
       <a href="?tab=login" class="<?= $tab === 'login' ? 'active' : '' ?>">Iniciar Sesión</a>
-      <a href="?tab=registro" class="<?= $tab === 'registro' ? 'active' : '' ?>">➕ Crear Cuenta de Banco</a>
+      <a href="?tab=registro" class="<?= $tab === 'registro' ? 'active' : '' ?>">Crear Usuario</a>
     </div>
 
     <?php if (!empty($error)): ?>
@@ -207,10 +211,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php if ($tab === 'login'): ?>
       <!-- INICIAR CON KEYCLOAK SSO -->
       <a href="<?= getenv('RENDER') === 'true' ? 'https://banco-dokr.onrender.com/' : '/' ?>" class="btn-sso">
-        🔐 Abrir la aplicación para iniciar con <strong>Keycloak SSO</strong>
+        🔐 Iniciar con <strong>Keycloak SSO</strong>
       </a>
 
-      <div class="divider"><span>o con credenciales locales</span></div>
+      <div class="divider"><span>Ingresa con tu usuario</span></div>
 
       <!-- FORMULARIO DE LOGIN (USUARIO O NÚMERO DE CÉDULA) -->
       <form method="POST" action="/login.php">
@@ -218,15 +222,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="form-group">
           <label>Usuario o Número de Cédula</label>
-          <input type="text" name="login_input" id="login_input" placeholder="Ej. 0801000001 o axel.rosero" required autofocus>
+          <input type="text" name="login_input" id="login_input" autocomplete="username" placeholder="Tu usuario o cédula" required autofocus>
         </div>
 
         <div class="form-group">
           <label>Contraseña</label>
-          <input type="password" name="password" id="password_input" autocomplete="current-password" required>
+          <input type="password" name="password" id="password_input" placeholder="Tu contraseña" autocomplete="current-password" required>
         </div>
 
-        <button type="submit" class="btn-primary">Ingresar al Sistema ➔</button>
+        <button type="submit" class="btn-primary">Ingresar a la plataforma ➔</button>
       </form>
 
 
