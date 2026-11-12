@@ -81,7 +81,7 @@ class CuentaController {
     }
 
     public static function create(): void {
-        $currentUser = Auth::requireAuth(['CLIENTE', 'ADMIN', 'ASESOR']);
+        $currentUser = Auth::requireAuth(['ADMIN', 'ASESOR']);
         $body = Router::getJsonBody();
 
         $idCliente = ($currentUser['rol'] === 'CLIENTE')

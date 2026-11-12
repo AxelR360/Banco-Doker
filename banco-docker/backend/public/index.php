@@ -30,7 +30,10 @@ if (str_starts_with($uri, '/api/')) {
     require_once __DIR__ . '/../src/Controllers/PrestamoController.php';
     require_once __DIR__ . '/../src/Controllers/TarjetaController.php';
 
+    require_once __DIR__ . '/../src/Controllers/AdministracionController.php';
     $router = new Router();
+    $router->patch('/api/v1/clientes/{id}', [AdministracionController::class, 'actualizarCliente']);
+    $router->get('/api/v1/reportes', [AdministracionController::class, 'reportes']);
     $router->post('/api/v1/auth/login',    [AuthController::class, 'login']);
     $router->post('/api/v1/auth/registro', [AuthController::class, 'registro']);
     $router->get('/api/v1/auth/me',        [AuthController::class, 'me']);

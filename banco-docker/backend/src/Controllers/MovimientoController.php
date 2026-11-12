@@ -102,7 +102,7 @@ class MovimientoController {
     }
 
     public static function deposito(): void {
-        $currentUser = Auth::requireAuth(['CLIENTE', 'ADMIN', 'ASESOR']);
+        $currentUser = Auth::requireAuth(['ADMIN', 'ASESOR']);
         $body = Router::getJsonBody();
 
         $cuentaRaw = trim((string)($body['id_cuenta'] ?? ''));
@@ -240,6 +240,13 @@ class MovimientoController {
             Response::error('No tienes autorización para ver los movimientos de esta cuenta', 403);
         }
 
+        $pagina = max(1, (int)($_GET['pagina'] ?? 1));
+        $limite = max(1, min(100, (int)($_GET['limite'] ?? 50)));
+        $offset = ($pagina - 1) * $limite;
+        $tipo = $_GET['tipo'] ?? '';
+        if ($tipo !== '' && !in_array($tipo, ['DEPOSITO', 'RETIRO', 'TRANSFERENCIA'], true)) {
+            Response::error('Tipo de movimiento inválido', 400);
+        }
         $stmt = $db->prepare("
             SELECT m.*, 
                    co.numero_cuenta AS cuenta_origen_num,
@@ -247,11 +254,11 @@ class MovimientoController {
             FROM movimientos m
             LEFT JOIN cuentas co ON m.id_cuenta_origen = co.id_cuenta
             LEFT JOIN cuentas cd ON m.id_cuenta_destino = cd.id_cuenta
-            WHERE m.id_cuenta_origen = :id1 OR m.id_cuenta_destino = :id2
-            ORDER BY m.fecha DESC
-            LIMIT 50
+            WHERE (m.id_cuenta_origen = :id1 OR m.id_cuenta_destino = :id2) AND (:sin_tipo = '' OR m.tipo = :tipo)
+            ORDER BY m.fecha DESC, m.id_movimiento DESC
+            LIMIT {$limite} OFFSET {$offset}
         ");
-        $stmt->execute(['id1' => $idCuenta, 'id2' => $idCuenta]);
+        $stmt->execute(['id1' => $idCuenta, 'id2' => $idCuenta, 'sin_tipo' => $tipo, 'tipo' => $tipo]);
         $movimientos = $stmt->fetchAll();
 
         Response::json($movimientos, 200);

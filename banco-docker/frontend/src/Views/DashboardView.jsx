@@ -1,3 +1,4 @@
+import AdministrationPanel from './AdministrationPanel'
 import React, { useState } from 'react'
 import {
   ArrowDownLeft, ArrowLeftRight, ArrowUpRight, Bell, ChevronDown,
@@ -39,10 +40,10 @@ export default function DashboardView({ controller }) {
   // Calculate total balance from cuentas
   const totalBalance = cuentas.length > 0
     ? cuentas.reduce((acc, c) => acc + parseFloat(c.saldo || 0), 0).toFixed(2)
-    : '12,480.50'
+    : '0.00'
 
   const primaryAccount = cuentas[0] || {
-    numero_cuenta: '2200000001',
+    numero_cuenta: 'Sin cuentas',
     tipo: 'AHORROS',
     saldo: totalBalance,
     moneda: 'USD'
@@ -315,6 +316,7 @@ export default function DashboardView({ controller }) {
             </article>
           </div>
         </section>
+      {user.rol !== 'CLIENTE' && <AdministrationPanel user={user} />}
       </main>
 
       {/* MODAL TRANSFERENCIA (CU-02, RF-11) */}

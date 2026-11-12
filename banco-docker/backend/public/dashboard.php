@@ -87,8 +87,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $estadoActual = $_POST['estado_actual'] ?? 'ACTIVA';
         $nuevoEstado = $estadoActual === 'ACTIVA' ? 'BLOQUEADA' : 'ACTIVA';
 
-        $stmtTar = $db->prepare("UPDATE tarjetas SET estado = :est WHERE id_tarjeta = :id");
-        $stmtTar->execute(['est' => $nuevoEstado, 'id' => $idTarjeta]);
+        $stmtTar = $db->prepare("UPDATE tarjetas SET estado = :est WHERE id_tarjeta = :id AND id_cuenta IN (SELECT id_cuenta FROM cuentas WHERE id_cliente = :cliente OR :gestor = 1)");
+        $stmtTar->execute(['est' => $nuevoEstado, 'id' => $idTarjeta, 'cliente' => $user['id_cliente'], 'gestor' => $puedeEvaluarPrestamos ? 1 : 0]);
         $flashSuccess = "Tarjeta actualizada a {$nuevoEstado}.";
     }
 

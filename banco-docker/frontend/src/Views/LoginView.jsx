@@ -119,11 +119,6 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
     }
   }
 
-  const quickLogin = (user) => {
-    setUsername(user)
-    setPassword('12345')
-    handleLogin(null, user, '12345')
-  }
 
   return (
     <div className="login-page">
@@ -133,7 +128,7 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
             <Landmark size={26} />
           </div>
           <h1>Nexo<span>Bank</span></h1>
-          <p>Sistema Bancario Digital · UTLVTE Grupo #4</p>
+          <p>Tu banco, siempre contigo</p><div className="login-illustration" aria-hidden="true"><Landmark size={64} strokeWidth={1.3} /><span>Hola, te damos la bienvenida</span></div>
         </div>
 
         {/* Pestañas Iniciar Sesión / Crear Usuario */}
@@ -174,7 +169,7 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
             )}
 
             <div className="divider-text">
-              <span>o con credenciales locales</span>
+              <span>Ingresa con tu usuario</span>
             </div>
 
             <form onSubmit={handleLogin} className="login-form">
@@ -184,7 +179,7 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
                   <User size={18} />
                   <input
                     type="text"
-                    placeholder="Ej. admin, asesor1, axel.rosero"
+                    placeholder="Tu usuario"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
@@ -198,7 +193,7 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
                   <Lock size={18} />
                   <input
                     type="password"
-                    placeholder="Contraseña (predeterminada: 12345)"
+                    placeholder="Tu contraseña" required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
@@ -211,25 +206,6 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
               </button>
             </form>
 
-            <div className="demo-accounts">
-              <span className="demo-title">
-                <ShieldCheck size={14} /> Acceso rápido (Demostración de Roles):
-              </span>
-              <div className="demo-buttons">
-                <button type="button" onClick={() => quickLogin('admin')} className="badge-btn admin">
-                  👔 Administrador
-                </button>
-                <button type="button" onClick={() => quickLogin('asesor1')} className="badge-btn asesor">
-                  💼 Asesor 1
-                </button>
-                <button type="button" onClick={() => quickLogin('axel.rosero')} className="badge-btn cliente">
-                  👤 Axel (Cliente)
-                </button>
-                <button type="button" onClick={() => quickLogin('melany.zambrano')} className="badge-btn cliente">
-                  👤 Melany (Cliente)
-                </button>
-              </div>
-            </div>
           </>
         ) : (
           /* FORMULARIO DE CREAR USUARIO / REGISTRO */

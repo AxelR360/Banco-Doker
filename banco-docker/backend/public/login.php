@@ -228,30 +228,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <button type="submit" class="btn-primary">Ingresar al Sistema ➔</button>
       </form>
 
-      <!-- DEMOSTRACIÓN RÁPIDA -->
-      <?php if (getenv('BANCO_DEMO_LOGIN') === '1' && getenv('RENDER') !== 'true'): ?>
-      <div class="demo-box">
-        <p>⚡ Accesos de Demostración con Cédula o Usuario:</p>
-        <div class="demo-grid">
-          <button type="button" class="btn-demo" onclick="fillLogin('0801000001')">
-            👤 Axel Rosero
-            <small>Cédula: 0801000001</small>
-          </button>
-          <button type="button" class="btn-demo" onclick="fillLogin('0801000002')">
-            👤 Melany Zambrano
-            <small>Cédula: 0801000002</small>
-          </button>
-          <button type="button" class="btn-demo" onclick="fillLogin('admin')">
-            👑 Admin
-            <small>Usuario: admin</small>
-          </button>
-          <button type="button" class="btn-demo" onclick="fillLogin('asesor1')">
-            💼 Asesor
-            <small>Usuario: asesor1</small>
-          </button>
-        </div>
-      </div>
-      <?php endif; ?>
+
 
     <?php else: ?>
       <!-- FORMULARIO PARA CREAR CUENTA PARA EL BANCO -->

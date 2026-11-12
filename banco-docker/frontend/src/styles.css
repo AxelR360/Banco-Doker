@@ -555,3 +555,36 @@ header { height: 78px; background: white; border-bottom: 1px solid #edf0f4; disp
   border-color: #665cf0;
   background: white;
 }
+
+/* Identidad visual del banco y distribución móvil. */
+:root { color: #102b49; background: #f5f7fa; }
+.brand-mark, .brand-mark.large { background: #ffdc32; color: #102b49; box-shadow: none; }
+.brand > span:last-child span, .login-header h1 span { color: #102b49; }
+.login-page { background: #f3f6f8; padding: 28px 16px; }
+.login-card { border: 1px solid #e5eaf0; border-radius: 28px; box-shadow: 0 16px 60px #102b4910; max-width: 440px; }
+.login-header p { color: #61758a; }
+.login-illustration { min-height: 180px; margin: 24px 0; border-radius: 24px; background: #fff7c3; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; color: #102b49; }
+.login-illustration span { font-size: 14px; }
+.login-submit, .primary, .btn-primary { background: #ffdc32; color: #102b49; box-shadow: none; border: 0; font-weight: 700; }
+.btn-keycloak-sso { background: #102b49; color: white; border-color: #102b49; }
+.auth-tab.active { color: #102b49; border-color: #ffdc32; background: #fff8ce; }
+.balance-card { background: #102b49; }
+.quick-actions { gap: 12px; }
+.quick-actions button { border: 1px solid #e3e9ef; border-radius: 16px; background: white; color: #102b49; }
+.sidebar { border-right: 1px solid #e5eaf0; }
+@media (max-width:760px) {
+  .login-card { box-shadow: none; padding: 26px 22px; }
+  .login-page { align-items: flex-start; }
+  .balance-grid { display: flex; overflow-x: auto; padding-bottom: 12px; scroll-snap-type: x mandatory; }
+  .balance-grid > * { min-width: 270px; scroll-snap-align: start; }
+  .quick-actions { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); }
+  .quick-actions button { padding: 18px 8px; min-height: 96px; }
+}
+.admin-panel { margin: 24px 0; background: white; padding: 24px; border-radius: 20px; }
+.admin-panel article, .admin-panel form { border-bottom: 1px solid #e5eaf0; padding: 16px 0; }
+.admin-panel label { display: block; margin: 10px 0; }
+.admin-panel input { display: block; width: 100%; padding: 10px; border: 1px solid #ccd5df; border-radius: 8px; }
+.admin-panel button { padding: 10px 16px; border: 1px solid #dce3ea; border-radius: 10px; background: #fff4ac; color: #102b49; }
+.admin-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.admin-panel table { width: 100%; text-align: left; border-collapse: collapse; }
+.admin-panel td, .admin-panel th { padding: 8px; border-bottom: 1px solid #e5eaf0; }
