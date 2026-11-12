@@ -210,7 +210,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <?php if ($tab === 'login'): ?>
       <!-- INICIAR CON KEYCLOAK SSO -->
-      <a href="<?= getenv('RENDER') === 'true' ? 'https://banco-dokr.onrender.com/' : '/' ?>" class="btn-sso">
+      <a href="<?= getenv('RENDER') === 'true' ? 'https://banco-dokr.onrender.com/?sso=1' : '/?sso=1' ?>" class="btn-sso">
         🔐 Iniciar con <strong>Keycloak SSO</strong>
       </a>
 

@@ -12,8 +12,12 @@ export default function App() {
   })
 
   const [ssoError, setSsoError] = useState(false)
+  const directSso = new URLSearchParams(window.location.search).get('sso') === '1'
   useEffect(() => {
-    if (!keycloak) return
+    if (!keycloak) {
+      if (directSso) setSsoError(true)
+      return
+    }
     let refreshTimer
     let cancelled = false
     const endSsoSession = () => {
@@ -87,6 +91,9 @@ export default function App() {
   }
 
   if (!currentUser) {
+    if (directSso && !ssoError) {
+      return <main className="login-page"><div className="login-card" role="status">Abriendo el inicio de sesión de Keycloak…</div></main>
+    }
     return <LoginView onLoginSuccess={handleLoginSuccess} ssoError={ssoError} />
   }
 

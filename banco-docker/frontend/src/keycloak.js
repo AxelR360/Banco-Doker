@@ -12,6 +12,10 @@ export function initKeycloak() {
   if (!initialization) {
     const options = { pkceMethod: 'S256', checkLoginIframe: false }
     if (localStorage.getItem('nexo_sso') === '1') options.onLoad = 'check-sso'
+    if (new URLSearchParams(window.location.search).get('sso') === '1') {
+      options.onLoad = 'login-required'
+      options.redirectUri = window.location.origin + '/'
+    }
     initialization = keycloak.init(options)
   }
   return initialization
