@@ -26,7 +26,11 @@ class Database {
             try {
                 self::$instance = new PDO($dsn, $user, $pass, $options);
             } catch (PDOException $e) {
-                Response::error('Error al conectar con la base de datos MySQL: ' . $e->getMessage(), 500);
+                if (PHP_SAPI === 'cli') {
+                    throw $e;
+                }
+                require_once __DIR__ . '/Response.php';
+                Response::error('No se pudo conectar con la base de datos. Intenta de nuevo.', 503);
             }
         }
         return self::$instance;

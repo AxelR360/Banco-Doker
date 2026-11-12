@@ -27,7 +27,7 @@ El backend genera una clave JWT al arrancar. Para conservar los tokens locales e
 
 ### Volúmenes MySQL creados con una versión anterior
 
-Para habilitar el registro con contraseña en un volumen existente, comprueba si existe la columna nueva. Si el primer comando no devuelve filas, ejecuta el segundo una vez. Esto conserva las cuentas y los movimientos.
+El backend comprueba la columna de contraseñas al arrancar y la crea si falta. El usuario de conexión necesita permiso ALTER para esa primera migración. También puedes aplicarla manualmente con los siguientes comandos si administras la base con otro usuario.
 
 ```powershell
 docker compose exec mysql mysql -uroot -p banco_digital -e "SHOW COLUMNS FROM usuarios LIKE 'password_hash';"
@@ -40,7 +40,7 @@ La base nueva aplica este cambio al inicializarse. Las cuentas creadas mediante 
 
 El backend publicado usa el mismo Dockerfile, con `banco-docker/backend` como contexto. La API pública se sirve en `https://banco-bakend.onrender.com/api/v1`. Configura en Render `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS` y `DB_SSL=1` con la conexión de Aiven. Para Keycloak configura `KEYCLOAK_REALM_URL` con la URL HTTPS del realm publicado y `VITE_KEYCLOAK_URL` con la URL HTTPS de Keycloak al compilar el frontend.
 
-Para habilitar el registro en una base Aiven anterior, ejecuta el `SHOW COLUMNS` y, si falta la columna, el `ALTER TABLE` de arriba desde tu cliente SQL conectado a Aiven. Usa el esquema configurado en `DB_NAME`. Las cuentas locales existentes requieren su propio hash de contraseña o acceso mediante un usuario vinculado en Keycloak. Las claves de demostración de Docker están deshabilitadas en Render.
+El arranque del backend aplica automáticamente la migración de contraseñas en Aiven. Si el usuario de conexión carece de permiso ALTER, aplícala con un usuario administrador de la base mediante los comandos anteriores. Usa el esquema configurado en `DB_NAME`. Las cuentas locales existentes requieren su propio hash de contraseña o acceso mediante un usuario vinculado en Keycloak. Las claves de demostración de Docker están deshabilitadas en Render.
 
 ## API REST
 

@@ -168,7 +168,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         exit;
                     } catch (Exception $e) {
                         $db->rollBack();
-                        $error = 'Error al crear la cuenta bancaria: ' . $e->getMessage();
+                        error_log('Error al registrar una cuenta. Código SQL: ' . $e->getCode());
+                        $error = 'No se pudo crear la cuenta. Comprueba los datos e inténtalo de nuevo.';
                     }
                 }
             }
