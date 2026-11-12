@@ -1,10 +1,12 @@
 <?php
 
+require_once __DIR__ . '/../LocalCredentials.php';
+
 class AuthController {
     public static function login(): void {
         $body = Router::getJsonBody();
         $username = trim($body['username'] ?? '');
-        $password = trim($body['password'] ?? '');
+        $password = (string)($body['password'] ?? '');
 
         if (empty($username)) {
             Response::error('Debe ingresar un nombre de usuario', 400);
@@ -12,7 +14,7 @@ class AuthController {
 
         $db = Database::getConnection();
         $stmt = $db->prepare("
-            SELECT u.id_usuario, u.keycloak_id, u.username, u.rol, u.id_cliente, u.estado,
+            SELECT u.*,
                    c.identificacion, c.nombres, c.apellidos, c.correo
             FROM usuarios u
             LEFT JOIN clientes c ON u.id_cliente = c.id_cliente
@@ -29,9 +31,8 @@ class AuthController {
             Response::error('El usuario se encuentra inactivo o bloqueado', 403);
         }
 
-        // Validación de contraseña flexible para entorno académico (acepta "12345" o el mismo username)
-        if (!empty($password) && $password !== '12345' && $password !== $username && $password !== 'admin' && $password !== 'password') {
-            Response::error('Contraseña incorrecta (para pruebas usa 12345 o tu usuario)', 401);
+        if (!LocalCredentials::verify($user, $password)) {
+            Response::error('Credenciales incorrectas', 401);
         }
 
         $fullName = trim(($user['nombres'] ?? '') . ' ' . ($user['apellidos'] ?? ''));
@@ -64,9 +65,9 @@ class AuthController {
         $correo = trim($body['correo'] ?? '');
         $telefono = trim($body['telefono'] ?? '');
         $username = trim($body['username'] ?? '');
-        $password = trim($body['password'] ?? '12345');
+        $password = (string)($body['password'] ?? '');
 
-        if (empty($nombres) || empty($apellidos) || empty($identificacion) || empty($correo) || empty($username)) {
+        if (empty($nombres) || empty($apellidos) || empty($identificacion) || empty($correo) || empty($username) || !LocalCredentials::validPassword($password)) {
             Response::error('Por favor complete todos los campos obligatorios', 400);
         }
 
@@ -133,13 +134,14 @@ class AuthController {
                 mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
             );
             $stmtU = $db->prepare("
-                INSERT INTO usuarios (keycloak_id, username, rol, id_cliente, estado, creado_en)
-                VALUES (:k_id, :u, 'CLIENTE', :id_c, 'ACTIVO', NOW())
+                INSERT INTO usuarios (keycloak_id, username, rol, id_cliente, estado, creado_en, password_hash)
+                VALUES (:k_id, :u, 'CLIENTE', :id_c, 'ACTIVO', NOW(), :hash)
             ");
             $stmtU->execute([
                 'k_id' => $keycloakUuid,
                 'u'    => $username,
-                'id_c' => $idCliente
+                'id_c' => $idCliente,
+                'hash' => password_hash($password, PASSWORD_DEFAULT)
             ]);
             $idUsuario = (int)$db->lastInsertId();
 
@@ -161,7 +163,10 @@ class AuthController {
             ], 201, 'Usuario y cuenta bancaria creados correctamente');
         } catch (Exception $e) {
             $db->rollBack();
-            Response::error('Error al registrar usuario: ' . $e->getMessage(), 500);
+            if ($e instanceof PDOException && ($e->errorInfo[1] ?? null) === 1062) {
+                Response::error('El registro contiene datos duplicados', 409);
+            }
+            throw $e;
         }
     }
 

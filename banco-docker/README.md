@@ -1,41 +1,84 @@
-# Sistema de Gestión Bancaria Digital (Grupo #4 - UTLVTE)
+# Sistema de Gestión Bancaria Digital
 
-Proyecto académico desarrollado según la norma **IEEE Std 830-1998**.
+Proyecto académico del Grupo 4 de la UTLVTE con datos de demostración.
 
-## 🛠️ Stack Tecnológico Completo
-* **Backend**: PHP 8.3 (API REST estructurada en capas, PDO MySQL y validación JWT).
-* **Frontend**: JavaScript / React + Lucide Icons (construido con Vite).
-* **Servidor Web & Proxy Inverso**: Nginx Alpine en el puerto `80`.
-* **Identidad & SSO / OIDC**: Keycloak 24.0 en el puerto `8085`.
-* **Base de Datos**: MySQL 8.4 (InnoDB con procedimientos almacenados y triggers) en puerto `3307`.
-* **Administrador BD**: phpMyAdmin en puerto `8081`.
+## Arrancar en Docker Desktop
 
----
+Desde la carpeta `banco-docker`, con Docker Desktop en modo de contenedores Linux:
 
-## 🚀 Despliegue en Docker Compose
+```powershell
+docker compose up -d --build --wait
+docker compose ps
+```
 
-1. Asegúrate de tener **Docker Desktop** abierto y en ejecución.
-2. Desde la terminal en la carpeta `banco-docker`:
-   ```bash
-   docker compose up -d --build
-   ```
+El [Dockerfile del backend](backend/Dockerfile) construye PHP 8.3 con Apache, PDO MySQL y las dependencias de Composer. [Docker Compose](docker-compose.yml) levanta MySQL 8.4 como servicio separado, compila React y configura Nginx y Keycloak. Los servicios publicados escuchan en la interfaz local.
 
-### 🔗 Puntos de acceso:
-* 🌐 **Aplicación Web Frontend (Nginx SPA React)**: [http://localhost](http://localhost)
-* 🔐 **Keycloak SSO (IAM/OIDC)**: [http://localhost:8085](http://localhost:8085)
-  * Consola de administración: usuario `admin` / clave `admin`
-  * Realm importado automáticamente: `banco-digital`
-* 🗄️ **phpMyAdmin**: [http://localhost:8081](http://localhost:8081)
-* 🐬 **MySQL**: `localhost:3307` (usuario `banco_user`, clave `12345`, db `banco_digital`)
-* 📑 **Vistas PHP Clásicas**: [http://localhost/login.php](http://localhost/login.php) y [http://localhost/dashboard.php](http://localhost/dashboard.php)
+| Servicio | Acceso |
+| --- | --- |
+| React y API | http://localhost |
+| Vistas PHP clásicas | http://localhost/login.php |
+| Consola de Keycloak | http://localhost:8085/admin/ |
+| phpMyAdmin | http://localhost:8081 |
+| MySQL | `127.0.0.1:3307`, base `banco_digital` |
 
----
+El usuario de MySQL para una instalación nueva es `banco_user`, con clave `12345` si no se cambia en `.env`. La consola de Keycloak usa `admin` y `admin123`. En el banco, los usuarios de prueba `admin`, `asesor1`, `axel.rosero` y `melany.zambrano` usan `12345` tanto en el formulario local como en Keycloak. El realm `banco-digital` se importa al arrancar Keycloak.
 
-## 👥 Cuentas y Roles Preconfigurados (Keycloak & MySQL)
+El backend genera una clave JWT al arrancar. Para conservar los tokens locales entre reinicios, define una clave propia de al menos 32 caracteres en `BANCO_JWT_SECRET` en `.env`.
 
-| Usuario | Rol | Contraseña | Asociación en Base de Datos |
-|---|---|---|---|
-| `admin` | **ADMIN** | `12345` | Administrador general de la plataforma |
-| `asesor1` | **ASESOR** | `12345` | Asesor bancario (gestión de clientes y préstamos) |
-| `axel.rosero` | **CLIENTE** | `12345` | Cliente 1: Axel Rosero (Cuenta 2200000001) |
-| `melany.zambrano` | **CLIENTE** | `12345` | Cliente 2: Melany Zambrano (Cuenta 2200000002) |
+### Volúmenes MySQL creados con una versión anterior
+
+Para habilitar el registro con contraseña en un volumen existente, comprueba si existe la columna nueva. Si el primer comando no devuelve filas, ejecuta el segundo una vez. Esto conserva las cuentas y los movimientos.
+
+```powershell
+docker compose exec mysql mysql -uroot -p banco_digital -e "SHOW COLUMNS FROM usuarios LIKE 'password_hash';"
+docker compose exec mysql mysql -uroot -p banco_digital -e "ALTER TABLE usuarios ADD COLUMN password_hash VARCHAR(255) NULL;"
+```
+
+La base nueva aplica este cambio al inicializarse. Las cuentas creadas mediante formularios antiguos carecen de una contraseña recuperable. Para habilitar su acceso local, un administrador de la base debe asignarles un hash generado con `password_hash` de PHP. Los usuarios de demostración conservan sus credenciales. El registro en el banco crea credenciales locales.
+
+## Render y Aiven
+
+El backend publicado usa el mismo Dockerfile, con `banco-docker/backend` como contexto. La API pública se sirve en `https://banco-bakend.onrender.com/api/v1`. Configura en Render `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS` y `DB_SSL=1` con la conexión de Aiven. Para Keycloak configura `KEYCLOAK_REALM_URL` con la URL HTTPS del realm publicado y `VITE_KEYCLOAK_URL` con la URL HTTPS de Keycloak al compilar el frontend.
+
+Para habilitar el registro en una base Aiven anterior, ejecuta el `SHOW COLUMNS` y, si falta la columna, el `ALTER TABLE` de arriba desde tu cliente SQL conectado a Aiven. Usa el esquema configurado en `DB_NAME`. Las cuentas locales existentes requieren su propio hash de contraseña o acceso mediante un usuario vinculado en Keycloak. Las claves de demostración de Docker están deshabilitadas en Render.
+
+## API REST
+
+Base local `http://localhost/api/v1`. El inicio de sesión devuelve el token en `data.token`. Envía `Authorization: Bearer <token>` en las rutas protegidas. Las respuestas exitosas incluyen los resultados en `data`.
+
+### Consultar cuentas y saldos por cédula
+
+```powershell
+$login = Invoke-RestMethod -Method Post -Uri 'http://localhost/api/v1/auth/login' `
+  -ContentType 'application/json' -Body (@{username='asesor1'; password='12345'} | ConvertTo-Json)
+$headers = @{ Authorization = "Bearer $($login.data.token)" }
+(Invoke-RestMethod -Uri 'http://localhost/api/v1/clientes/cedula/0801000001/cuentas' -Headers $headers).data
+```
+
+La ruta acepta una cédula de diez dígitos y devuelve una fila por cuenta con `id_cuenta`, `numero_cuenta`, `tipo`, `moneda`, `saldo` y `estado`. Solo pueden usarla ADMIN y ASESOR. Una cédula válida sin cliente devuelve 404. Un cliente existente sin cuentas devuelve una lista vacía. Para consultar tu propio saldo como CLIENTE usa `GET /cuentas/mias`, o `GET /cuentas/{id}` para una cuenta específica. En Render usa `https://banco-bakend.onrender.com/api/v1/clientes/cedula/{cedula}/cuentas` con un token de esa instalación.
+
+### Endpoints
+
+Todas las rutas de esta tabla se agregan a la base `/api/v1`.
+
+| Método | Ruta | Operación |
+| --- | --- | --- |
+| POST | `/auth/login` | Iniciar sesión local con `username` y `password` |
+| POST | `/auth/registro` | Registrar un usuario local con `nombres`, `apellidos`, `identificacion`, `correo`, `username`, `password` y `telefono` opcional |
+| GET | `/auth/me` | Consultar el usuario autenticado |
+| GET | `/clientes?q=texto` | Buscar clientes por identificación, nombre, apellido o correo (ADMIN, ASESOR) |
+| POST | `/clientes` | Registrar un cliente (ADMIN, ASESOR) |
+| GET | `/clientes/{id}` | Consultar un cliente por ID |
+| GET | `/clientes/cedula/{cedula}/cuentas` | Consultar cuentas y saldo por cédula (ADMIN, ASESOR) |
+| GET | `/cuentas/mias` | Listar cuentas y saldos visibles para el usuario |
+| POST | `/cuentas` | Abrir una cuenta |
+| GET | `/cuentas/{id}` | Consultar una cuenta y su saldo por ID |
+| GET | `/cuentas/{id}/movimientos` | Consultar movimientos de una cuenta |
+| POST | `/movimientos/transferencia` | Transferir entre cuentas |
+| POST | `/movimientos/deposito` | Registrar un depósito |
+| POST | `/movimientos/retiro` | Registrar un retiro |
+| GET | `/prestamos` | Listar préstamos visibles para el usuario |
+| POST | `/prestamos` | Solicitar un préstamo |
+| PATCH | `/prestamos/{id}/estado` | Cambiar el estado de un préstamo (ADMIN, ASESOR) |
+| GET | `/tarjetas/mias` | Listar tarjetas visibles para el usuario |
+| PATCH | `/tarjetas/{id}/estado` | Cambiar el estado de una tarjeta |

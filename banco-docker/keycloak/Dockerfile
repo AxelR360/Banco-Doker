@@ -9,7 +9,7 @@ ENV KEYCLOAK_ADMIN=admin \
     KC_HOSTNAME_STRICT=false \
     KC_HOSTNAME_STRICT_HTTPS=false \
     KC_SPI_STICKY_SESSION_ENCODER__INFINISPAN__SHOULD_ATTACH_ROUTE=false \
-    JAVA_OPTS_APPEND="-Xms64m -Xmx256m -XX:MetaspaceSize=96m -XX:MaxMetaspaceSize=384m -XX:+UseG1GC"
+    JAVA_OPTS_APPEND="-Xms64m -Xmx256m -XX:MetaspaceSize=96m -XX:MaxMetaspaceSize=384m"
 
 # Copiar el realm con permisos para el usuario keycloak (1000)
 COPY --chown=keycloak:keycloak banco-realm.json /opt/keycloak/data/import/banco-realm.json

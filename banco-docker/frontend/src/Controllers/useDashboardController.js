@@ -24,7 +24,7 @@ export function useDashboardController(initialUser, onLogout) {
   const [showDepositModal, setShowDepositModal] = useState(false)
   const [showCreateAccountModal, setShowCreateAccountModal] = useState(false)
 
-  const token = localStorage.getItem('nexo_token')
+  const getToken = () => localStorage.getItem('nexo_token')
 
   const notify = (message) => {
     setToast(message)
@@ -34,11 +34,11 @@ export function useDashboardController(initialUser, onLogout) {
 
   // Cargar datos de la API
   const refreshData = async () => {
-    if (!token) return
+    if (!getToken()) return
     try {
       // 1. Cuentas
       const resCuentas = await fetch(`${API_URL}/api/v1/cuentas/mias`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${getToken()}` }
       })
       const dataCuentas = await resCuentas.json()
       if (dataCuentas.success && Array.isArray(dataCuentas.data)) {
@@ -48,7 +48,7 @@ export function useDashboardController(initialUser, onLogout) {
         if (dataCuentas.data.length > 0) {
           const firstId = dataCuentas.data[0].id_cuenta
           const resMov = await fetch(`${API_URL}/api/v1/cuentas/${firstId}/movimientos`, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${getToken()}` }
           })
           const dataMov = await resMov.json()
           if (dataMov.success && Array.isArray(dataMov.data)) {
@@ -59,7 +59,7 @@ export function useDashboardController(initialUser, onLogout) {
 
       // 2. Tarjetas
       const resTarjetas = await fetch(`${API_URL}/api/v1/tarjetas/mias`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${getToken()}` }
       })
       const dataTarjetas = await resTarjetas.json()
       if (dataTarjetas.success && Array.isArray(dataTarjetas.data)) {
@@ -68,7 +68,7 @@ export function useDashboardController(initialUser, onLogout) {
 
       // 3. Préstamos
       const resPrestamos = await fetch(`${API_URL}/api/v1/prestamos`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${getToken()}` }
       })
       const dataPrestamos = await resPrestamos.json()
       if (dataPrestamos.success && Array.isArray(dataPrestamos.data)) {
@@ -100,7 +100,7 @@ export function useDashboardController(initialUser, onLogout) {
   const selectSection = (section) => {
     setActive(section)
     setMenuOpen(false)
-    if (section === 'Transferencias' || section === 'Transeerencias') {
+    if (section === 'Transferencias' || section === 'Transferencias') {
       setShowTransferModal(true)
     } else if (section === 'Cuentas & Depósitos' || section === 'Cuentas & DepÃ³sitos') {
       setShowDepositModal(true)
@@ -116,7 +116,7 @@ export function useDashboardController(initialUser, onLogout) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${getToken()}`
         },
         body: JSON.stringify({
           id_cuenta_origen: origenId,
@@ -147,7 +147,7 @@ export function useDashboardController(initialUser, onLogout) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${getToken()}`
         },
         body: JSON.stringify({
           id_cuenta: cuentaId,
@@ -176,7 +176,7 @@ export function useDashboardController(initialUser, onLogout) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${getToken()}`
         },
         body: JSON.stringify({
           id_cliente: user.id_cliente,
@@ -207,7 +207,7 @@ export function useDashboardController(initialUser, onLogout) {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${getToken()}`
         },
         body: JSON.stringify({ estado: nuevo })
       })
@@ -227,7 +227,7 @@ export function useDashboardController(initialUser, onLogout) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${getToken()}`
         },
         body: JSON.stringify({ monto: parseFloat(monto), plazo_meses: parseInt(plazo, 10) })
       })

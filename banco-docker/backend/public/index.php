@@ -1,4 +1,5 @@
 <?php
+ob_start();
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -35,6 +36,7 @@ if (str_starts_with($uri, '/api/')) {
     $router->get('/api/v1/auth/me',        [AuthController::class, 'me']);
     $router->get('/api/v1/clientes',       [ClienteController::class, 'index']);
     $router->post('/api/v1/clientes',      [ClienteController::class, 'create']);
+    $router->get('/api/v1/clientes/cedula/{cedula}/cuentas', [CuentaController::class, 'porCedula']);
     $router->get('/api/v1/clientes/{id}',  [ClienteController::class, 'show']);
     $router->get('/api/v1/cuentas/mias',   [CuentaController::class, 'mias']);
     $router->post('/api/v1/cuentas',       [CuentaController::class, 'create']);
@@ -49,7 +51,12 @@ if (str_starts_with($uri, '/api/')) {
     $router->get('/api/v1/tarjetas/mias',           [TarjetaController::class, 'mias']);
     $router->patch('/api/v1/tarjetas/{id}/estado',  [TarjetaController::class, 'updateEstado']);
 
-    $router->dispatch();
+    try {
+        $router->dispatch();
+    } catch (Throwable $error) {
+        error_log((string)$error);
+        Response::error('Error interno del servidor', 500);
+    }
     exit;
 }
 

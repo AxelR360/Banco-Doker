@@ -11,32 +11,61 @@ export default function App() {
     return saved ? JSON.parse(saved) : null
   })
 
-  useEffect(() => {
-    if (API_URL) fetch(API_URL + '/api/v1/auth/me').catch(() => {})
-    if (keycloak && import.meta.env.VITE_KEYCLOAK_URL) {
-      const discovery = import.meta.env.VITE_KEYCLOAK_URL.replace(/\/$/, '') +
-        '/realms/banco-digital/.well-known/openid-configuration'
-      fetch(discovery, { mode: 'no-cors', credentials: 'omit' }).catch(() => {})
-    }
-  }, [])
-
   const [ssoError, setSsoError] = useState(false)
   useEffect(() => {
     if (!keycloak) return
+    let refreshTimer
+    let cancelled = false
+    const endSsoSession = () => {
+      if (localStorage.getItem('nexo_sso') === '1') {
+        localStorage.removeItem('nexo_sso')
+        localStorage.removeItem('nexo_user')
+        localStorage.removeItem('nexo_token')
+        setCurrentUser(null)
+      }
+    }
     initKeycloak().then(async authenticated => {
-      if (!authenticated) return
+      if (cancelled) return
+      if (!authenticated) {
+        endSsoSession()
+        return
+      }
       const response = await fetch(API_URL + '/api/v1/auth/me', {
         headers: { Authorization: 'Bearer ' + keycloak.token },
       })
       const result = await response.json()
       const user = result.data
+      if (cancelled) return
       if (!response.ok || !user?.id_usuario) throw new Error('SSO rejected')
       user.nombre = [user.nombres, user.apellidos].filter(Boolean).join(' ') || user.username
       localStorage.setItem('nexo_token', keycloak.token)
       localStorage.setItem('nexo_user', JSON.stringify(user))
       localStorage.setItem('nexo_sso', '1')
       setCurrentUser(user)
-    }).catch(() => setSsoError(true))
+      refreshTimer = window.setInterval(async () => {
+        if (localStorage.getItem('nexo_sso') !== '1') {
+          window.clearInterval(refreshTimer)
+          return
+        }
+        try {
+          await keycloak.updateToken(45)
+          if (localStorage.getItem('nexo_sso') === '1') {
+            localStorage.setItem('nexo_token', keycloak.token)
+          }
+        } catch {
+          endSsoSession()
+          setSsoError(true)
+        }
+      }, 15000)
+    }).catch(() => {
+      if (cancelled) return
+      endSsoSession()
+      setSsoError(true)
+    })
+    return () => {
+      cancelled = true
+      window.clearInterval(refreshTimer)
+    }
   }, [])
 
   const handleLoginSuccess = (user) => {
@@ -52,7 +81,7 @@ export default function App() {
     const usedSso = localStorage.getItem('nexo_sso')
     localStorage.removeItem('nexo_sso')
     if (usedSso && keycloak) {
-      initKeycloak().then(() => keycloak.logout({ redirectUri: window.location.origin + '/' }))
+      keycloak.logout({ redirectUri: window.location.origin + '/' })
         .catch(() => setSsoError(true))
     }
   }

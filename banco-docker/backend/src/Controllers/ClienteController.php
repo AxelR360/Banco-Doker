@@ -9,10 +9,10 @@ class ClienteController {
         if ($search !== '') {
             $stmt = $db->prepare("
                 SELECT * FROM clientes
-                WHERE identificacion LIKE :q OR nombres LIKE :q OR apellidos LIKE :q OR correo LIKE :q
+                WHERE identificacion LIKE ? OR nombres LIKE ? OR apellidos LIKE ? OR correo LIKE ?
                 ORDER BY id_cliente DESC
             ");
-            $stmt->execute(['q' => "%{$search}%"]);
+            $stmt->execute(array_fill(0, 4, "%{$search}%"));
         } else {
             $stmt = $db->query("SELECT * FROM clientes ORDER BY id_cliente DESC");
         }
@@ -26,7 +26,8 @@ class ClienteController {
         $id = (int)$params['id'];
 
         // Si es cliente, solo puede ver su propio perfil (RN-08, RNF-04)
-        if ($currentUser['rol'] === 'CLIENTE' && $currentUser['id_cliente'] !== $id) {
+        // FIX: comparar ambos como enteros para evitar error de tipo int vs null
+        if ($currentUser['rol'] === 'CLIENTE' && (int)($currentUser['id_cliente'] ?? 0) !== $id) {
             Response::error('No tienes permiso para consultar información de otro cliente', 403);
         }
 

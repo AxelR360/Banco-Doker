@@ -46,7 +46,7 @@ class MovimientoController {
         }
 
         // Validar que el cliente autenticado sea dueño de la cuenta origen (RN-08, RF-06)
-        if ($currentUser['rol'] === 'CLIENTE' && !empty($currentUser['id_cliente']) && (int)$cuentaOrigen['id_cliente'] !== (int)$currentUser['id_cliente']) {
+        if ($currentUser['rol'] === 'CLIENTE' && (int)$cuentaOrigen['id_cliente'] !== (int)($currentUser['id_cliente'] ?? 0)) {
             Response::error('No tienes autorización para realizar transferencias desde esta cuenta origen', 403);
         }
 
@@ -129,7 +129,7 @@ class MovimientoController {
                 Response::error('La cuenta no está activa para recibir depósitos', 400);
             }
 
-            if ($currentUser['rol'] === 'CLIENTE' && !empty($currentUser['id_cliente']) && (int)$cuenta['id_cliente'] !== (int)$currentUser['id_cliente']) {
+            if ($currentUser['rol'] === 'CLIENTE' && (int)$cuenta['id_cliente'] !== (int)$currentUser['id_cliente']) {
                 $db->rollBack();
                 Response::error('No tienes autorización para depositar en esta cuenta', 403);
             }
@@ -185,7 +185,7 @@ class MovimientoController {
                 $db->rollBack();
                 Response::error('Cuenta no encontrada', 404);
             }
-            if ($currentUser['rol'] === 'CLIENTE' && (int)$cuenta['id_cliente'] !== $currentUser['id_cliente']) {
+            if ($currentUser['rol'] === 'CLIENTE' && (int)$cuenta['id_cliente'] !== (int)$currentUser['id_cliente']) {
                 $db->rollBack();
                 Response::error('No tienes permisos sobre esta cuenta', 403);
             }
@@ -236,7 +236,7 @@ class MovimientoController {
         if (!$cuenta) {
             Response::error('Cuenta no encontrada', 404);
         }
-        if ($currentUser['rol'] === 'CLIENTE' && (int)$cuenta['id_cliente'] !== $currentUser['id_cliente']) {
+        if ($currentUser['rol'] === 'CLIENTE' && (int)$cuenta['id_cliente'] !== (int)$currentUser['id_cliente']) {
             Response::error('No tienes autorización para ver los movimientos de esta cuenta', 403);
         }
 

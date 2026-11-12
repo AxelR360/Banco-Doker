@@ -6,8 +6,7 @@
 -- Datos ficticios: no se almacenan contraseñas, PIN, CVV ni números completos de tarjeta.
 -- =====================================================================
 
-DROP DATABASE IF EXISTS banco_digital;
-CREATE DATABASE banco_digital CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS banco_digital CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE banco_digital;
 
 -- ---------------------------------------------------------------------

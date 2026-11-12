@@ -33,7 +33,7 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
       const res = await fetch(`${API_URL}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: u, password: p || '12345' }),
+        body: JSON.stringify({ username: u, password: p }),
       })
 
       const text = await res.text()
@@ -78,7 +78,7 @@ export default function LoginView({ onLoginSuccess, ssoError }) {
           correo: regCorreo,
           telefono: regTelefono,
           username: regUsername,
-          password: regPassword || '12345'
+          password: regPassword
         }),
       })
 

@@ -5,11 +5,13 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Si ya tiene sesión activa, va directo al dashboard
 if (!empty($_SESSION['user'])) {
-    header('Location: /');
+    header('Location: /dashboard.php');
     exit;
 }
 
+require_once __DIR__ . '/../src/Response.php';
 require_once __DIR__ . '/../src/Database.php';
+require_once __DIR__ . '/../src/LocalCredentials.php';
 
 $error = '';
 $success = '';
@@ -23,13 +25,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 1. INICIAR SESIÓN (Permite USUARIO o NÚMERO DE CÉDULA)
     if ($action === 'login') {
         $loginInput = trim($_POST['login_input'] ?? '');
-        $password   = trim($_POST['password'] ?? '');
+        $password   = (string)($_POST['password'] ?? '');
 
         if (empty($loginInput)) {
             $error = 'Por favor ingrese su usuario o su número de cédula.';
         } else {
             $stmt = $db->prepare("
-                SELECT u.id_usuario, u.username, u.rol, u.id_cliente, u.estado,
+                SELECT u.*,
                        c.identificacion, c.nombres, c.apellidos, c.correo, c.telefono
                 FROM usuarios u
                 LEFT JOIN clientes c ON u.id_cliente = c.id_cliente
@@ -43,9 +45,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } elseif ($user['estado'] !== 'ACTIVO') {
                 $error = 'Su usuario se encuentra inactivo o bloqueado.';
             } else {
-                // Validación de contraseña flexible para ambiente académico
-                if (!empty($password) && $password !== '12345' && $password !== $user['username'] && $password !== 'admin' && $password !== 'password') {
-                    $error = 'Contraseña incorrecta. (Para pruebas usa 12345 o tu usuario).';
+                if (!LocalCredentials::verify($user, $password)) {
+                    $error = 'Credenciales incorrectas.';
                 } else {
                     $fullName = trim(($user['nombres'] ?? '') . ' ' . ($user['apellidos'] ?? ''));
                     $_SESSION['user'] = [
@@ -57,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'nombre'         => $fullName ?: ucfirst($user['username']),
                         'correo'         => $user['correo'] ?? ''
                     ];
-                    header('Location: /');
+                    header('Location: /dashboard.php');
                     exit;
                 }
             }
@@ -73,9 +74,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $correo         = trim($_POST['correo'] ?? '');
         $telefono       = trim($_POST['telefono'] ?? '');
         $username       = trim($_POST['username'] ?? '');
-        $password       = trim($_POST['password'] ?? '12345');
+        $password       = (string)($_POST['password'] ?? '');
 
-        if (empty($identificacion) || empty($nombres) || empty($apellidos) || empty($correo) || empty($username)) {
+        if (empty($identificacion) || empty($nombres) || empty($apellidos) || empty($correo) || empty($username) || !LocalCredentials::validPassword($password)) {
             $error = 'Por favor complete todos los campos obligatorios.';
         } else {
             // Validar si ya existe cédula o correo (BD-04)
@@ -139,13 +140,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         // D. Crear Usuario asociado
                         $keycloakId = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x', mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0x0fff) | 0x4000, mt_rand(0, 0x3fff) | 0x8000, mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff));
                         $stmtUsu = $db->prepare("
-                            INSERT INTO usuarios (keycloak_id, username, rol, id_cliente, estado, creado_en)
-                            VALUES (:kid, :u, 'CLIENTE', :cli, 'ACTIVO', NOW())
+                            INSERT INTO usuarios (keycloak_id, username, rol, id_cliente, estado, creado_en, password_hash)
+                            VALUES (:kid, :u, 'CLIENTE', :cli, 'ACTIVO', NOW(), :hash)
                         ");
                         $stmtUsu->execute([
                             'kid' => $keycloakId,
                             'u'   => $username,
-                            'cli' => $idCliente
+                            'cli' => $idCliente,
+                            'hash' => password_hash($password, PASSWORD_DEFAULT)
                         ]);
                         $idUsuario = (int)$db->lastInsertId();
 
@@ -162,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             'correo'         => $correo
                         ];
 
-                        header('Location: /');
+                        header('Location: /dashboard.php');
                         exit;
                     } catch (Exception $e) {
                         $db->rollBack();
@@ -203,8 +205,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <?php if ($tab === 'login'): ?>
       <!-- INICIAR CON KEYCLOAK SSO -->
-      <a href="http://localhost:8085/realms/banco-digital/protocol/openid-connect/auth?client_id=banco-frontend&redirect_uri=http%3A%2F%2Flocalhost%2F&response_type=code&scope=openid" class="btn-sso">
-        🔐 Iniciar con <strong>Keycloak SSO</strong> (:8085)
+      <a href="<?= getenv('RENDER') === 'true' ? 'https://banco-dokr.onrender.com/' : '/' ?>" class="btn-sso">
+        🔐 Abrir la aplicación para iniciar con <strong>Keycloak SSO</strong>
       </a>
 
       <div class="divider"><span>o con credenciales locales</span></div>
@@ -220,13 +222,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="form-group">
           <label>Contraseña</label>
-          <input type="password" name="password" id="password_input" placeholder="Contraseña (predeterminada: 12345)">
+          <input type="password" name="password" id="password_input" autocomplete="current-password" required>
         </div>
 
         <button type="submit" class="btn-primary">Ingresar al Sistema ➔</button>
       </form>
 
       <!-- DEMOSTRACIÓN RÁPIDA -->
+      <?php if (getenv('BANCO_DEMO_LOGIN') === '1' && getenv('RENDER') !== 'true'): ?>
       <div class="demo-box">
         <p>⚡ Accesos de Demostración con Cédula o Usuario:</p>
         <div class="demo-grid">
@@ -248,6 +251,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </button>
         </div>
       </div>
+      <?php endif; ?>
 
     <?php else: ?>
       <!-- FORMULARIO PARA CREAR CUENTA PARA EL BANCO -->

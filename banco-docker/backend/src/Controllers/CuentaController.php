@@ -6,6 +6,9 @@ class CuentaController {
         $db = Database::getConnection();
 
         $idCliente = $currentUser['id_cliente'];
+        if (!$idCliente && $currentUser['rol'] === 'CLIENTE') {
+            Response::error('El usuario no tiene un cliente asociado', 403);
+        }
         if (!$idCliente) {
             // Si es admin/asesor sin cliente asignado, lista todas o vacío
             $stmt = $db->query("
@@ -29,6 +32,29 @@ class CuentaController {
         Response::json($cuentas, 200);
     }
 
+    public static function porCedula(array $params): void {
+        Auth::requireAuth(['ADMIN', 'ASESOR']);
+        $cedula = $params['cedula'];
+        if (!preg_match('/^[0-9]{10}$/D', $cedula)) {
+            Response::error('La cédula debe contener 10 dígitos', 400);
+        }
+
+        $db = Database::getConnection();
+        $stmt = $db->prepare('SELECT id_cliente FROM clientes WHERE identificacion = ?');
+        $stmt->execute([$cedula]);
+        $idCliente = $stmt->fetchColumn();
+        if ($idCliente === false) {
+            Response::error('Cliente no encontrado', 404);
+        }
+
+        $stmt = $db->prepare(
+            'SELECT id_cuenta, numero_cuenta, tipo, moneda, saldo, estado
+             FROM cuentas WHERE id_cliente = ? ORDER BY id_cuenta'
+        );
+        $stmt->execute([$idCliente]);
+        Response::json($stmt->fetchAll(), 200);
+    }
+
     public static function show(array $params): void {
         $currentUser = Auth::requireAuth();
         $id = (int)$params['id'];
@@ -47,7 +73,7 @@ class CuentaController {
             Response::error('Cuenta bancaria no encontrada', 404);
         }
 
-        if ($currentUser['rol'] === 'CLIENTE' && $currentUser['id_cliente'] !== (int)$cuenta['id_cliente']) {
+        if ($currentUser['rol'] === 'CLIENTE' && (int)$currentUser['id_cliente'] !== (int)$cuenta['id_cliente']) {
             Response::error('No tienes autorización para consultar esta cuenta', 403);
         }
 
