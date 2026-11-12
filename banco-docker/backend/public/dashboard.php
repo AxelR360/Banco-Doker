@@ -9,6 +9,7 @@ if (empty($_SESSION['user'])) {
 }
 
 require_once __DIR__ . '/../src/Database.php';
+require_once __DIR__ . '/../src/DesembolsoPrestamo.php';
 
 $user = $_SESSION['user'];
 $db = Database::getConnection();
@@ -98,15 +99,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!is_string($csrf) || !hash_equals($_SESSION['prestamo_csrf'], $csrf) || $idPrestamo <= 0) {
             $flashError = 'No se pudo validar la aprobación. Recarga el panel e inténtalo de nuevo.';
         } else {
-            $stmtEv = $db->prepare("
-                UPDATE prestamos SET estado = 'APROBADO', id_evaluador = :eval, resuelto_en = NOW()
-                WHERE id_prestamo = :id AND estado IN ('SOLICITADO', 'EN_REVISION')
-            ");
-            $stmtEv->execute(['eval' => $user['id_usuario'], 'id' => $idPrestamo]);
-            if ($stmtEv->rowCount() === 1) {
-                $flashSuccess = "Préstamo #{$idPrestamo} aprobado.";
-            } else {
-                $flashError = 'La solicitud ya fue resuelta o no existe.';
+            try {
+                DesembolsoPrestamo::aprobar($db, $idPrestamo, (int)$user['id_usuario']);
+                $flashSuccess = "Préstamo #{$idPrestamo} aprobado y abonado al saldo del cliente.";
+            } catch (DomainException $error) {
+                $flashError = $error->getMessage();
+            } catch (PDOException $error) {
+                error_log((string)$error);
+                $flashError = 'No se pudo desembolsar el préstamo. Intenta de nuevo.';
             }
         }
     }

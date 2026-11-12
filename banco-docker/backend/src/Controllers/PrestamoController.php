@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../DesembolsoPrestamo.php';
+
 class PrestamoController {
     public static function index(): void {
         $currentUser = Auth::requireAuth();
@@ -73,13 +75,23 @@ class PrestamoController {
         }
 
         $db = Database::getConnection();
+        if ($nuevoEstado === 'APROBADO') {
+            try {
+                $cuenta = DesembolsoPrestamo::aprobar($db, $id, (int)$currentUser['id_usuario'], $observacion ?: null);
+            } catch (DomainException $error) {
+                Response::error($error->getMessage(), 409);
+                return;
+            }
+            Response::json(['id_prestamo' => $id, 'estado' => 'APROBADO', 'id_cuenta' => $cuenta], 200, 'Préstamo aprobado y desembolsado');
+            return;
+        }
         $stmt = $db->prepare("
             UPDATE prestamos
             SET estado = :estado,
                 id_evaluador = :evaluador,
                 observacion = :obs,
                 resuelto_en = NOW()
-            WHERE id_prestamo = :id
+            WHERE id_prestamo = :id AND estado <> 'APROBADO'
         ");
         $stmt->execute([
             'estado'    => $nuevoEstado,
@@ -88,6 +100,9 @@ class PrestamoController {
             'id'        => $id
         ]);
 
+        if ($stmt->rowCount() === 0) {
+            Response::error('El préstamo no existe, ya fue aprobado o no cambió de estado.', 409);
+        }
         Response::json(['id_prestamo' => $id, 'estado' => $nuevoEstado], 200, 'Estado del préstamo actualizado');
     }
 }
