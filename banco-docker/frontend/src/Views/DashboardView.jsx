@@ -147,6 +147,7 @@ export default function DashboardView({ controller }) {
         </header>
 
         <section className="content">
+          {active === 'Gestión Clientes' && user.rol !== 'CLIENTE' ? <AdministrationPanel user={user} /> : <>
           <div className="welcome">
             <div>
               <p>Sesión activa como {user.username}</p>
@@ -314,8 +315,8 @@ export default function DashboardView({ controller }) {
               })}
             </article>
           </div>
+          </>}
         </section>
-      {user.rol !== 'CLIENTE' && <AdministrationPanel user={user} />}
       </main>
 
       {/* MODAL TRANSFERENCIA (CU-02, RF-11) */}
@@ -512,3 +513,4 @@ export default function DashboardView({ controller }) {
     </div>
   )
 }
+
