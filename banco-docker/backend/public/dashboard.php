@@ -263,6 +263,15 @@ if ($saldoTotal === 0 && !empty($cuentas)) {
       </div>
     </div>
 
+    <section class="panel" id="ahorros">
+      <h3>Cuentas de ahorro</h3>
+      <?php $ahorros = array_filter($cuentas, fn($cuenta) => $cuenta['tipo'] === 'AHORROS'); ?>
+      <?php if (!$ahorros): ?><p>No hay cuentas de ahorro.</p><?php endif; ?>
+      <?php foreach ($ahorros as $cuenta): ?>
+        <p><?= htmlspecialchars($cuenta['numero_cuenta']) ?> · <?= htmlspecialchars($cuenta['estado']) ?> · <?= htmlspecialchars($cuenta['moneda']) ?> <?= number_format($cuenta['saldo'], 2) ?></p>
+      <?php endforeach; ?>
+    </section>
+
     <!-- SECCIÓN DE OPERACIONES Y MOVIMIENTOS -->
     <div class="content-grid">
       <div>
@@ -339,11 +348,13 @@ if ($saldoTotal === 0 && !empty($cuentas)) {
       <div>
         <!-- TARJETAS VIRTUALES (RF-13, CA-09) -->
         <div class="panel" id="tarjetas">
-          <h3>💳 Tarjetas Ficticias</h3>
-          <?php if (empty($tarjetas)): ?>
+          <?php foreach (['CREDITO' => 'Tarjetas de crédito', 'DEBITO' => 'Tarjetas de débito'] as $tipoTarjeta => $titulo): ?>
+          <h3><?= $titulo ?></h3>
+          <?php $grupo = array_filter($tarjetas, fn($tarjeta) => $tarjeta['tipo'] === $tipoTarjeta); ?>
+          <?php if (empty($grupo)): ?>
             <p style="color: var(--text-muted); font-size: 13px;">No posee tarjetas asignadas.</p>
           <?php else: ?>
-            <?php foreach ($tarjetas as $t): ?>
+            <?php foreach ($grupo as $t): ?>
               <div class="bank-card-visual <?= $t['estado'] === 'BLOQUEADA' ? 'blocked' : '' ?>">
                 <div style="display: flex; justify-content: space-between; font-size: 12px; letter-spacing: 1px;">
                   <span>NEXO BANK · <?= htmlspecialchars($t['tipo']) ?></span>
@@ -368,6 +379,7 @@ if ($saldoTotal === 0 && !empty($cuentas)) {
               </div>
             <?php endforeach; ?>
           <?php endif; ?>
+          <?php endforeach; ?>
         </div>
 
         <!-- SOLICITAR PRÉSTAMO (CU-03, RF-14) -->

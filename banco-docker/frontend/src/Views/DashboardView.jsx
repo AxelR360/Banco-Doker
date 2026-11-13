@@ -215,6 +215,13 @@ export default function DashboardView({ controller }) {
             </article>
           </div>
 
+          <section className="panel" id="ahorros">
+            <h2>Cuentas de ahorro</h2>
+            {cuentas.some(c => c.tipo === 'AHORROS') ? cuentas.filter(c => c.tipo === 'AHORROS').map(c => (
+              <p key={c.id_cuenta}>{c.numero_cuenta} · {c.estado} · {c.moneda} {Number(c.saldo).toFixed(2)}</p>
+            )) : <p>No hay cuentas de ahorro.</p>}
+          </section>
+
           <div className="quick-section">
             <div className="section-title"><h2>Acciones Rápidas</h2></div>
             <div className="quick-grid">
@@ -273,15 +280,11 @@ export default function DashboardView({ controller }) {
             </article>
 
             <article className="panel card-panel">
-              <div className="panel-heading">
-                <div>
-                  <h2>Tarjetas Ficticias</h2>
-                  <p>Protección PAN (RN-09)</p>
-                </div>
-              </div>
-
-              {tarjetas.length > 0 ? (
-                tarjetas.map(t => (
+              {[['CREDITO', 'Tarjetas de crédito'], ['DEBITO', 'Tarjetas de débito']].map(([tipo, titulo]) => {
+                const grupo = tarjetas.filter(t => t.tipo === tipo)
+                return <section key={tipo}>
+                  <h2>{titulo}</h2>
+                  {grupo.length ? grupo.map(t => (
                   <div key={t.id_tarjeta} className={`bank-card ${t.estado === 'BLOQUEADA' ? 'blocked' : ''}`}>
                     <div className="card-header-inner">
                       <span>NEXO BANK · {t.tipo}</span>
@@ -301,15 +304,9 @@ export default function DashboardView({ controller }) {
                       {t.estado === 'ACTIVA' ? 'Bloquear Tarjeta' : 'Desbloquear Tarjeta'}
                     </button>
                   </div>
-                ))
-              ) : (
-                <div className="bank-card">
-                  <div className="card-header-inner"><span>NEXO BANK · DÉBITO</span><span>ACTIVA</span></div>
-                  <div className="chip" />
-                  <strong>•••• &nbsp; •••• &nbsp; •••• &nbsp; 4242</strong>
-                  <footer><span><small>TITULAR</small>{user.nombre.toUpperCase()}</span><span><small>VENCE</small>12/29</span></footer>
-                </div>
-              )}
+                  )) : <p>No hay tarjetas asignadas de este tipo.</p>}
+                </section>
+              })}
             </article>
           </div>
         </section>
