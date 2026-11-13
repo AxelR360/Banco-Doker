@@ -18,21 +18,18 @@ try {
     }
     $adminPassword = getenv('BANCO_ADMIN_PASSWORD');
     if (getenv('RENDER') === 'true' && is_string($adminPassword) && $adminPassword !== '') {
-        $db->exec("CREATE TABLE IF NOT EXISTS banco_migraciones (
-            nombre VARCHAR(100) PRIMARY KEY,
-            aplicada_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-        ) ENGINE=InnoDB");
         $db->beginTransaction();
-        $migration = $db->prepare('INSERT IGNORE INTO banco_migraciones (nombre) VALUES (?)');
-        $migration->execute(['20261112_habilitar_admin_local']);
-        if ($migration->rowCount() === 1) {
-            $admin = $db->query("SELECT id_usuario FROM usuarios WHERE username = 'admin' AND rol = 'ADMIN' FOR UPDATE")->fetchColumn();
-            if ($admin === false) {
-                throw new RuntimeException('No existe el administrador del banco.');
-            }
+        $admin = $db->query(
+            "SELECT id_usuario, password_hash, estado FROM usuarios
+             WHERE username = 'admin' AND rol = 'ADMIN' FOR UPDATE"
+        )->fetch();
+        if (!$admin) {
+            throw new RuntimeException('No existe el administrador del banco.');
+        }
+        if (!password_verify($adminPassword, $admin['password_hash'] ?? '') || $admin['estado'] !== 'ACTIVO') {
             $update = $db->prepare("UPDATE usuarios SET password_hash = ?, estado = 'ACTIVO' WHERE id_usuario = ?");
-            $update->execute([password_hash($adminPassword, PASSWORD_DEFAULT), $admin]);
-            fwrite(STDOUT, "Acceso local del administrador habilitado.\n");
+            $update->execute([password_hash($adminPassword, PASSWORD_DEFAULT), $admin['id_usuario']]);
+            fwrite(STDOUT, "Administrador sincronizado con la configuración de Render.\n");
         }
         $db->commit();
     }
