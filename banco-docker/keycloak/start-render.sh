@@ -8,7 +8,8 @@ if [ "${KC_RECOVERY_MODE:-false}" = "true" ]; then
     echo 'Ejecutando la recuperación administrativa sobre la base configurada.'
     /opt/keycloak/bin/kc.sh bootstrap-admin user \
         --username "$KC_BOOTSTRAP_ADMIN_USERNAME" \
-        --password:env=KC_BOOTSTRAP_ADMIN_PASSWORD
+        --password:env KC_BOOTSTRAP_ADMIN_PASSWORD \
+        --no-prompt
 fi
 
 exec /opt/keycloak/bin/kc.sh start-dev --import-realm \
