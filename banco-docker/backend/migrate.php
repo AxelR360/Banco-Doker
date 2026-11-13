@@ -16,8 +16,31 @@ try {
             }
         }
     }
+    $adminPassword = getenv('BANCO_ADMIN_PASSWORD');
+    if (getenv('RENDER') === 'true' && is_string($adminPassword) && $adminPassword !== '') {
+        $db->exec("CREATE TABLE IF NOT EXISTS banco_migraciones (
+            nombre VARCHAR(100) PRIMARY KEY,
+            aplicada_en TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB");
+        $db->beginTransaction();
+        $migration = $db->prepare('INSERT IGNORE INTO banco_migraciones (nombre) VALUES (?)');
+        $migration->execute(['20261112_habilitar_admin_local']);
+        if ($migration->rowCount() === 1) {
+            $admin = $db->query("SELECT id_usuario FROM usuarios WHERE username = 'admin' AND rol = 'ADMIN' FOR UPDATE")->fetchColumn();
+            if ($admin === false) {
+                throw new RuntimeException('No existe el administrador del banco.');
+            }
+            $update = $db->prepare("UPDATE usuarios SET password_hash = ?, estado = 'ACTIVO' WHERE id_usuario = ?");
+            $update->execute([password_hash($adminPassword, PASSWORD_DEFAULT), $admin]);
+            fwrite(STDOUT, "Acceso local del administrador habilitado.\n");
+        }
+        $db->commit();
+    }
     fwrite(STDOUT, "Esquema de credenciales preparado.\n");
 } catch (Throwable $error) {
-    fwrite(STDERR, "No se pudo preparar el esquema de credenciales. Comprueba la conexión y el permiso ALTER de la base configurada.\n");
+    if (isset($db) && $db->inTransaction()) {
+        $db->rollBack();
+    }
+    fwrite(STDERR, "No se pudo preparar el acceso local. Comprueba la conexión, los permisos CREATE/ALTER y que exista el usuario admin con rol ADMIN.\n");
     exit(1);
 }
