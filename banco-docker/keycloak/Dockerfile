@@ -7,7 +7,8 @@ ENV KC_HEALTH_ENABLED=true \
     KC_HOSTNAME_STRICT=false \
     KC_HOSTNAME_STRICT_HTTPS=false \
     KC_SPI_STICKY_SESSION_ENCODER__INFINISPAN__SHOULD_ATTACH_ROUTE=false \
-    JAVA_OPTS_APPEND="-Xms64m -Xmx256m -XX:MetaspaceSize=96m -XX:MaxMetaspaceSize=384m"
+    JAVA_OPTS_KC_HEAP="-XX:InitialRAMPercentage=15 -XX:MaxRAMPercentage=40" \
+    JAVA_OPTS_APPEND="-XX:MaxMetaspaceSize=160m -XX:ReservedCodeCacheSize=48m -XX:+UseSerialGC"
 
 # Copiar el realm con permisos para el usuario keycloak (1000)
 COPY --chown=keycloak:keycloak banco-realm.json /opt/keycloak/data/import/banco-realm.json
