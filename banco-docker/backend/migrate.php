@@ -17,7 +17,7 @@ try {
         }
     }
     $adminPassword = getenv('BANCO_ADMIN_PASSWORD');
-    if (getenv('RENDER') === 'true' && is_string($adminPassword) && $adminPassword !== '') {
+    if (is_string($adminPassword) && $adminPassword !== '') {
         $db->beginTransaction();
         $admin = $db->query(
             "SELECT id_usuario, password_hash, estado FROM usuarios
@@ -32,6 +32,9 @@ try {
             fwrite(STDOUT, "Administrador sincronizado con la configuración de Render.\n");
         }
         $db->commit();
+        fwrite(STDOUT, "Configuración de acceso admin verificada.\n");
+    } else {
+        fwrite(STDOUT, "Sincronización admin omitida: BANCO_ADMIN_PASSWORD no está definida o está vacía.\n");
     }
     fwrite(STDOUT, "Esquema de credenciales preparado.\n");
 } catch (Throwable $error) {
