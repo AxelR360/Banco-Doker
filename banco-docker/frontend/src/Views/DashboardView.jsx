@@ -52,14 +52,15 @@ export default function DashboardView({ controller }) {
     ? user.nombre.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
     : 'US'
 
-  const handleTransferSubmit = (e) => {
+  const handleTransferSubmit = async (e) => {
     e.preventDefault()
-    executeTransfer({
+    const success = await executeTransfer({
       origenId: transferOrigen || (cuentas[0] ? cuentas[0].id_cuenta : 1),
       destinoId: transferDestino,
       monto: transferMonto,
       descripcion: transferDesc || 'Transferencia inmediata'
     })
+    if (!success) return
     setTransferMonto('')
     setTransferDestino('')
     setTransferDesc('')

@@ -1,5 +1,5 @@
 ﻿import API_URL from '../api'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ArrowLeftRight, CreditCard, HandCoins, Home, WalletCards, Users, FileText } from 'lucide-react'
 
 export function useDashboardController(initialUser, onLogout) {
@@ -109,8 +109,17 @@ export function useDashboardController(initialUser, onLogout) {
     }
   }
 
+  const referenciaTransferencia = useRef(null)
+  const enviandoTransferencia = useRef(false)
+
   // Realizar transferencia (CU-02, RF-11)
   const executeTransfer = async ({ origenId, destinoId, monto, descripcion }) => {
+    if (enviandoTransferencia.current) return false
+    const datos = JSON.stringify([origenId, destinoId, monto, descripcion])
+    if (referenciaTransferencia.current?.datos !== datos) {
+      referenciaTransferencia.current = { datos, id: crypto.randomUUID() }
+    }
+    enviandoTransferencia.current = true
     try {
       const res = await fetch(`${API_URL}/api/v1/movimientos/transferencia`, {
         method: 'POST',
@@ -119,6 +128,7 @@ export function useDashboardController(initialUser, onLogout) {
           Authorization: `Bearer ${getToken()}`
         },
         body: JSON.stringify({
+          referencia: referenciaTransferencia.current.id,
           id_cuenta_origen: origenId,
           id_cuenta_destino: destinoId,
           monto: parseFloat(monto),
@@ -131,12 +141,15 @@ export function useDashboardController(initialUser, onLogout) {
       }
       const ref = result.data?.referencia ? result.data.referencia.substring(0, 8) : 'OK'
       notify(`✅ Transferencia exitosa. Ref: ${ref}`)
+      referenciaTransferencia.current = null
       setShowTransferModal(false)
       refreshData()
       return true
     } catch (err) {
       notify(`❌ ${err.message}`)
       return false
+    } finally {
+      enviandoTransferencia.current = false
     }
   }
 

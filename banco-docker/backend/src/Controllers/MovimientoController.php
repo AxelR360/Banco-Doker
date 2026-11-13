@@ -60,6 +60,14 @@ class MovimientoController {
             mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
         );
 
+        if (isset($body['referencia'])) {
+            $solicitada = $body['referencia'];
+            if (!is_string($solicitada) || !preg_match('/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/iD', $solicitada)) {
+                Response::error('Referencia de transferencia inválida', 400);
+            }
+            $referencia = $solicitada;
+        }
+
         // Usar el Stored Procedure `sp_transferir` definido en la base de datos
         try {
             $sp = $db->prepare("CALL sp_transferir(:origen, :destino, :monto, :referencia, :usuario, :desc)");
@@ -86,6 +94,9 @@ class MovimientoController {
                 'comprobante'   => 'TRANS-' . strtoupper(substr($referencia, 0, 8))
             ], 200, 'Transferencia realizada con éxito');
         } catch (PDOException $e) {
+            if ((int)($e->errorInfo[1] ?? 0) === 1062) {
+                Response::error('La referencia ya se utilizó. Revisa el historial antes de volver a enviar.', 409);
+            }
             $errMsg = $e->getMessage();
             // Errores lanzados por SIGNAL SQLSTATE 45000 en sp_transferir
             if (str_contains($errMsg, 'Saldo insuficiente')) {

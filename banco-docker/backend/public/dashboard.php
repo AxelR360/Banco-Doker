@@ -23,6 +23,7 @@ if ($puedeEvaluarPrestamos) {
     $_SESSION['prestamo_csrf'] ??= bin2hex(random_bytes(32));
 }
 
+$_SESSION['transferencia_csrf'] ??= bin2hex(random_bytes(32));
 $flashSuccess = '';
 $flashError = '';
 
@@ -54,15 +55,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $monto     = (float)($_POST['monto'] ?? 0);
         $desc      = trim($_POST['descripcion'] ?? 'Transferencia bancaria en línea');
 
-        if ($monto <= 0) {
+        $ref = $_POST['referencia_transferencia'] ?? '';
+        $cuenta = $db->prepare('SELECT id_cliente FROM cuentas WHERE id_cuenta = ?');
+        $cuenta->execute([$origenId]);
+        $titular = $cuenta->fetchColumn();
+
+        $csrf = $_POST['transferencia_csrf'] ?? '';
+        if (!is_string($csrf) || !hash_equals($_SESSION['transferencia_csrf'], $csrf) || !is_string($ref) || !preg_match('/^[a-f0-9]{32}$/D', $ref)) {
+            $flashError = 'Recarga el formulario para iniciar la transferencia.';
+        } elseif ($titular === false || ($user['rol'] === 'CLIENTE' && (int)$titular !== (int)$user['id_cliente'])) {
+            $flashError = 'La cuenta de origen no está disponible para esta transferencia.';
+        } elseif ($monto <= 0) {
             $flashError = 'El monto a transferir debe ser mayor a cero (RN-02).';
         } elseif ($origenId <= 0 || $destinoId <= 0) {
             $flashError = 'Debe seleccionar una cuenta de origen y especificar la cuenta de destino.';
         } elseif ($origenId === $destinoId) {
             $flashError = 'No se puede transferir a la misma cuenta (RN-05).';
         } else {
-            // Generar UUID único de referencia (RN-07)
-            $ref = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x', mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0x0fff) | 0x4000, mt_rand(0, 0x3fff) | 0x8000, mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff));
 
             try {
                 $sp = $db->prepare("CALL sp_transferir(:orig, :dest, :monto, :ref, :usr, :desc)");
@@ -300,8 +309,10 @@ if ($saldoTotal === 0 && !empty($cuentas)) {
         <!-- FORMULARIO DE TRANSFERENCIA BANCARIA (CU-02, RF-11) -->
         <div class="panel" id="transferencias">
           <h3>💸 Realizar Transferencia Inmediata</h3>
-          <form method="POST" action="/">
+          <form method="POST" action="/dashboard.php#transferencias">
             <input type="hidden" name="action" value="transferir">
+            <input type="hidden" name="transferencia_csrf" value="<?= htmlspecialchars($_SESSION['transferencia_csrf']) ?>">
+            <input type="hidden" name="referencia_transferencia" value="<?= bin2hex(random_bytes(16)) ?>">
 
             <div class="form-group">
               <label>Cuenta de Origen</label>
