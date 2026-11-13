@@ -170,7 +170,7 @@ export function useDashboardController(initialUser, onLogout) {
   }
 
   // Crear nueva cuenta bancaria
-  const executeCreateAccount = async ({ tipo, saldoInicial }) => {
+  const executeCreateAccount = async ({ tipo }) => {
     try {
       const res = await fetch(`${API_URL}/api/v1/cuentas`, {
         method: 'POST',
@@ -182,7 +182,7 @@ export function useDashboardController(initialUser, onLogout) {
           id_cliente: user.id_cliente,
           tipo: tipo || 'AHORROS',
           moneda: 'USD',
-          saldo: parseFloat(saldoInicial || 0)
+          saldo: 0
         })
       })
       const result = await res.json()

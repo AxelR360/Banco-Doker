@@ -32,7 +32,7 @@ class Cuenta extends Model {
             'cli'   => $idCliente,
             'tipo'  => $tipo,
             'mon'   => $moneda,
-            'saldo' => $saldoInicial
+            'saldo' => 0.00
         ]);
         return (int)$this->db->lastInsertId();
     }

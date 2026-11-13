@@ -31,7 +31,6 @@ export default function DashboardView({ controller }) {
 
   // Create account form state
   const [newAccTipo, setNewAccTipo] = useState('AHORROS')
-  const [newAccSaldo, setNewAccSaldo] = useState('100.00')
 
   // Loan form state
   const [loanMonto, setLoanMonto] = useState('')
@@ -80,10 +79,8 @@ export default function DashboardView({ controller }) {
   const handleCreateAccountSubmit = (e) => {
     e.preventDefault()
     executeCreateAccount({
-      tipo: newAccTipo,
-      saldoInicial: newAccSaldo
+      tipo: newAccTipo
     })
-    setNewAccSaldo('100.00')
   }
 
   const handleLoanSubmit = (e) => {
@@ -453,18 +450,7 @@ export default function DashboardView({ controller }) {
                 </select>
               </div>
 
-              <div className="form-group">
-                <label>Depósito Inicial ($ USD)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0.00"
-                  placeholder="Ej. 100.00"
-                  value={newAccSaldo}
-                  onChange={(e) => setNewAccSaldo(e.target.value)}
-                  required
-                />
-              </div>
+              <p>Tu cuenta se abrirá con un saldo de $0,00.</p>
 
               <div className="modal-actions">
                 <button type="button" className="btn-cancel" onClick={() => setShowCreateAccountModal(false)}>Cancelar</button>

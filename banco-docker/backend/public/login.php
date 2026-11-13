@@ -108,9 +108,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         ]);
                         $idCliente = (int)$db->lastInsertId();
 
-                        // B. Crear Cuenta Bancaria de Ahorros con saldo inicial de bienvenida
+                        // B. Crear cuenta de ahorros con saldo cero
                         $numeroCuenta = '22' . str_pad((string)mt_rand(10000000, 99999999), 8, '0', STR_PAD_LEFT);
-                        $saldoInicial = 250.00;
+                        $saldoInicial = 0.00;
                         $stmtCta = $db->prepare("
                             INSERT INTO cuentas (numero_cuenta, id_cliente, tipo, moneda, saldo, estado, abierta_en)
                             VALUES (:num, :cli, 'AHORROS', 'USD', :sal, 'ACTIVA', NOW())

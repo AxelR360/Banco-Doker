@@ -102,11 +102,11 @@ class AuthController {
             ]);
             $idCliente = (int)$db->lastInsertId();
 
-            // 2. Crear cuenta de ahorros inicial con bono de bienvenida de $250.00
+            // 2. Crear cuenta de ahorros con saldo cero
             $numCuenta = '22' . str_pad((string)mt_rand(10000000, 99999999), 8, '0', STR_PAD_LEFT);
             $stmtAcc = $db->prepare("
                 INSERT INTO cuentas (numero_cuenta, id_cliente, tipo, moneda, saldo, estado, abierta_en)
-                VALUES (:num, :cliente, 'AHORROS', 'USD', 250.00, 'ACTIVA', NOW())
+                VALUES (:num, :cliente, 'AHORROS', 'USD', 0.00, 'ACTIVA', NOW())
             ");
             $stmtAcc->execute(['num' => $numCuenta, 'cliente' => $idCliente]);
             $idCuenta = (int)$db->lastInsertId();

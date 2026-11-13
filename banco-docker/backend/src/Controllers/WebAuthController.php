@@ -112,9 +112,9 @@ class WebAuthController extends Controller {
             // A. Crear Cliente
             $idCliente = $this->clienteModel->create($identificacion, $nombres, $apellidos, $correo, $telefono ?: null);
 
-            // B. Crear Cuenta Bancaria de Ahorros con saldo de $250.00
+            // B. Crear Cuenta Bancaria de Ahorros con saldo cero
             $numeroCuenta = '22' . str_pad((string)mt_rand(10000000, 99999999), 8, '0', STR_PAD_LEFT);
-            $idCuenta = $this->cuentaModel->create($numeroCuenta, $idCliente, 'AHORROS', 250.00, 'USD');
+            $idCuenta = $this->cuentaModel->create($numeroCuenta, $idCliente, 'AHORROS', 0.00, 'USD');
 
             // C. Crear Tarjeta de Débito ficticia
             $tokenTarj = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x', mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0x0fff) | 0x4000, mt_rand(0, 0x3fff) | 0x8000, mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff));

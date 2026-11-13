@@ -90,7 +90,7 @@ class CuentaController {
 
         $tipo = strtoupper(trim($body['tipo'] ?? 'AHORROS'));
         $moneda = strtoupper(trim($body['moneda'] ?? 'USD'));
-        $saldoInicial = (float)($body['saldo'] ?? 0.0);
+        $saldoInicial = 0.00;
 
         if ($idCliente <= 0) {
             Response::error('Debe indicar un id_cliente válido', 400);
