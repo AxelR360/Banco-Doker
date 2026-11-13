@@ -15,7 +15,7 @@ export default function DashboardView({ controller }) {
     showDepositModal, setShowDepositModal,
     showCreateAccountModal, setShowCreateAccountModal,
     executeTransfer, executeDeposit, executeCreateAccount,
-    toggleCardStatus, requestLoan, onLogout
+    solicitarCredito, toggleCardStatus, requestLoan, onLogout
   } = controller
 
   // Transfer form state
@@ -284,6 +284,10 @@ export default function DashboardView({ controller }) {
                 const grupo = tarjetas.filter(t => t.tipo === tipo)
                 return <section key={tipo}>
                   <h2>{titulo}</h2>
+                  {tipo === 'CREDITO' && user.rol === 'CLIENTE' && <>
+                    <p>Evaluación simulada con el historial de tus cuentas.</p>
+                    <button type="button" className="outline-button" onClick={solicitarCredito}>Solicitar tarjeta de crédito</button>
+                  </>}
                   {grupo.length ? grupo.map(t => (
                   <div key={t.id_tarjeta} className={`bank-card ${t.estado === 'BLOQUEADA' ? 'blocked' : ''}`}>
                     <div className="card-header-inner">

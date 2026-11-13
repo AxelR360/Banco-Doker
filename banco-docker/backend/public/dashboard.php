@@ -11,7 +11,12 @@ if (empty($_SESSION['user'])) {
 require_once __DIR__ . '/../src/Database.php';
 require_once __DIR__ . '/../src/DesembolsoPrestamo.php';
 
+require_once __DIR__ . '/../src/SolicitudCredito.php';
+
 $user = $_SESSION['user'];
+if ($user['rol'] === 'CLIENTE') {
+    $_SESSION['credito_csrf'] ??= bin2hex(random_bytes(32));
+}
 $db = Database::getConnection();
 $puedeEvaluarPrestamos = in_array($user['rol'], ['ADMIN', 'ASESOR'], true);
 if ($puedeEvaluarPrestamos) {
@@ -24,6 +29,23 @@ $flashError = '';
 // PROCESAR OPERACIONES BANCARIAS EN PHP
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
+
+    if ($action === 'solicitar_credito' && $user['rol'] === 'CLIENTE') {
+        $csrf = $_POST['credito_csrf'] ?? '';
+        if (!is_string($csrf) || !hash_equals($_SESSION['credito_csrf'], $csrf)) {
+            $flashError = 'Recarga el panel y vuelve a enviar la solicitud.';
+        } else {
+            try {
+                SolicitudCredito::emitir($db, (int)$user['id_cliente']);
+                $flashSuccess = 'Tarjeta de crédito simulada aprobada.';
+            } catch (DomainException $error) {
+                $flashError = $error->getMessage();
+            } catch (PDOException $error) {
+                error_log((string)$error);
+                $flashError = 'No se pudo evaluar la solicitud. Inténtalo de nuevo.';
+            }
+        }
+    }
 
     // 1. TRANSFERENCIA BANCARIA SIMULADA (CU-02, RF-11)
     if ($action === 'transferir') {
@@ -350,6 +372,14 @@ if ($saldoTotal === 0 && !empty($cuentas)) {
         <div class="panel" id="tarjetas">
           <?php foreach (['CREDITO' => 'Tarjetas de crédito', 'DEBITO' => 'Tarjetas de débito'] as $tipoTarjeta => $titulo): ?>
           <h3><?= $titulo ?></h3>
+          <?php if ($tipoTarjeta === 'CREDITO' && $user['rol'] === 'CLIENTE'): ?>
+            <p>Evaluación simulada con el historial de tus cuentas.</p>
+            <form method="POST" action="/dashboard.php#tarjetas">
+              <input type="hidden" name="action" value="solicitar_credito">
+              <input type="hidden" name="credito_csrf" value="<?= htmlspecialchars($_SESSION['credito_csrf']) ?>">
+              <button class="btn-primary" type="submit">Solicitar tarjeta de crédito</button>
+            </form>
+          <?php endif; ?>
           <?php $grupo = array_filter($tarjetas, fn($tarjeta) => $tarjeta['tipo'] === $tipoTarjeta); ?>
           <?php if (empty($grupo)): ?>
             <p style="color: var(--text-muted); font-size: 13px;">No posee tarjetas asignadas.</p>

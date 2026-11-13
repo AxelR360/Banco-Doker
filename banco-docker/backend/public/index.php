@@ -53,6 +53,7 @@ if (str_starts_with($uri, '/api/')) {
     $router->get('/api/v1/prestamos',               [PrestamoController::class, 'index']);
     $router->post('/api/v1/prestamos',              [PrestamoController::class, 'create']);
     $router->patch('/api/v1/prestamos/{id}/estado', [PrestamoController::class, 'updateEstado']);
+    $router->post('/api/v1/tarjetas/solicitudes/credito', [TarjetaController::class, 'solicitarCredito']);
     $router->get('/api/v1/tarjetas/mias',           [TarjetaController::class, 'mias']);
     $router->patch('/api/v1/tarjetas/{id}/estado',  [TarjetaController::class, 'updateEstado']);
 

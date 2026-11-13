@@ -200,6 +200,20 @@ export function useDashboardController(initialUser, onLogout) {
   }
 
   // Alternar bloqueo de tarjeta (RF-13, CA-09)
+  const solicitarCredito = async () => {
+    try {
+      const response = await fetch(API_URL + '/api/v1/tarjetas/solicitudes/credito', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + getToken() },
+      })
+      const result = await response.json()
+      notify(result.message)
+      if (response.ok) await refreshData()
+    } catch {
+      notify('No se pudo evaluar la solicitud. Inténtalo de nuevo.')
+    }
+  }
+
   const toggleCardStatus = async (idTarjeta, currentEstado) => {
     const nuevo = currentEstado === 'ACTIVA' ? 'BLOQUEADA' : 'ACTIVA'
     try {
@@ -265,6 +279,7 @@ export function useDashboardController(initialUser, onLogout) {
     executeTransfer,
     executeDeposit,
     executeCreateAccount,
+    solicitarCredito,
     toggleCardStatus,
     requestLoan,
     refreshData,

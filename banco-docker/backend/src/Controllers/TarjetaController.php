@@ -1,6 +1,18 @@
 <?php
 
+require_once __DIR__ . '/../SolicitudCredito.php';
+
 class TarjetaController {
+    public static function solicitarCredito(): void {
+        $user = Auth::requireAuth(['CLIENTE']);
+        try {
+            $id = SolicitudCredito::emitir(Database::getConnection(), (int)$user['id_cliente']);
+        } catch (DomainException $error) {
+            Response::error($error->getMessage(), 409);
+        }
+        Response::json(['id_tarjeta' => $id, 'tipo' => 'CREDITO'], 201, 'Tarjeta de crédito simulada aprobada.');
+    }
+
     public static function mias(): void {
         $currentUser = Auth::requireAuth();
         $db = Database::getConnection();
