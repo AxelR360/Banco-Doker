@@ -1,9 +1,7 @@
-FROM quay.io/keycloak/keycloak:24.0.5
+FROM quay.io/keycloak/keycloak:26.7.4
 
 # Variables de entorno optimizadas para Render (Free Tier 512MB RAM) y Docker Compose
-ENV KEYCLOAK_ADMIN=admin \
-    KEYCLOAK_ADMIN_PASSWORD=admin123 \
-    KC_HEALTH_ENABLED=true \
+ENV KC_HEALTH_ENABLED=true \
     KC_HTTP_ENABLED=true \
     KC_PROXY_HEADERS=xforwarded \
     KC_HOSTNAME_STRICT=false \
@@ -13,8 +11,9 @@ ENV KEYCLOAK_ADMIN=admin \
 
 # Copiar el realm con permisos para el usuario keycloak (1000)
 COPY --chown=keycloak:keycloak banco-realm.json /opt/keycloak/data/import/banco-realm.json
+COPY --chown=keycloak:keycloak start-render.sh /opt/keycloak/bin/start-render.sh
 
 EXPOSE 8080 10000
 
 # Compatible con Render ($PORT dinámico) y Docker Compose ($PORT omitido -> 8080)
-ENTRYPOINT ["/bin/sh", "-c", "PORT_HTTP=${PORT:-8080}; exec /opt/keycloak/bin/kc.sh start-dev --import-realm --http-host=0.0.0.0 --http-port=$PORT_HTTP"]
+ENTRYPOINT ["/bin/sh", "/opt/keycloak/bin/start-render.sh"]
