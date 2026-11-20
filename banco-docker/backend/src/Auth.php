@@ -28,12 +28,15 @@ class Auth {
 
         $token = $matches[1];
         $issuer = rtrim(getenv('KEYCLOAK_REALM_URL') ?: 'http://host.docker.internal:8080/realms/Banco', '/');
-        $defaultIssuers = $issuer . ',http://localhost:8080/realms/Banco,http://127.0.0.1:8080/realms/Banco,http://localhost:8085/realms/banco-digital';
+        $defaultIssuers = $issuer . ',http://localhost:8080/realms/Banco,http://127.0.0.1:8080/realms/Banco,http://localhost:8085/realms/banco-digital,http://127.0.0.1:8085/realms/banco-digital';
         $issuers = array_map('trim', explode(',', getenv('KEYCLOAK_ALLOWED_ISSUERS') ?: $defaultIssuers));
+        $isRS256 = false;
+        $username = null;
         try {
             $segments = explode('.', $token);
             $header = json_decode(JWT::urlsafeB64Decode($segments[0]), false, 512, JSON_THROW_ON_ERROR);
             if (($header->alg ?? null) === 'RS256') {
+                $isRS256 = true;
                 $context = stream_context_create(['http' => ['timeout' => 5, 'follow_location' => 0]]);
                 $jwks = @file_get_contents($issuer . '/protocol/openid-connect/certs', false, $context);
                 if ($jwks === false) {
@@ -50,6 +53,7 @@ class Auth {
                 }
                 $column = 'keycloak_id';
                 $identity = $claims->sub;
+                $username = $claims->preferred_username ?? null;
             } else {
                 $claims = JWT::decode($token, new Key(self::signingKey(), 'HS256'));
                 $column = 'id_usuario';
@@ -62,12 +66,30 @@ class Auth {
             return null;
         }
 
-        $stmt = Database::getConnection()->prepare(
-            "SELECT id_usuario, username, rol, id_cliente FROM usuarios
-             WHERE {$column} = :identity AND estado = 'ACTIVO'"
-        );
-        $stmt->execute(['identity' => $identity]);
-        $user = $stmt->fetch();
+        $db = Database::getConnection();
+        if ($isRS256) {
+            $stmt = $db->prepare(
+                "SELECT id_usuario, username, rol, id_cliente, keycloak_id FROM usuarios
+                 WHERE (keycloak_id = :identity OR username = :username) AND estado = 'ACTIVO'
+                 LIMIT 1"
+            );
+            $stmt->execute(['identity' => $identity, 'username' => $username]);
+            $user = $stmt->fetch();
+            if ($user && $user['keycloak_id'] !== $identity) {
+                try {
+                    $upd = $db->prepare("UPDATE usuarios SET keycloak_id = :identity WHERE id_usuario = :id");
+                    $upd->execute(['identity' => $identity, 'id' => $user['id_usuario']]);
+                } catch (Throwable $ignore) {}
+            }
+        } else {
+            $stmt = $db->prepare(
+                "SELECT id_usuario, username, rol, id_cliente FROM usuarios
+                 WHERE {$column} = :identity AND estado = 'ACTIVO'"
+            );
+            $stmt->execute(['identity' => $identity]);
+            $user = $stmt->fetch();
+        }
+
         if (!$user || ($user['rol'] === 'CLIENTE' && !$user['id_cliente'])) {
             return null;
         }
