@@ -27,8 +27,9 @@ class Auth {
         }
 
         $token = $matches[1];
-        $issuer = rtrim(getenv('KEYCLOAK_REALM_URL') ?: 'http://keycloak:8080/realms/banco-digital', '/');
-        $issuers = array_map('trim', explode(',', getenv('KEYCLOAK_ALLOWED_ISSUERS') ?: $issuer));
+        $issuer = rtrim(getenv('KEYCLOAK_REALM_URL') ?: 'http://host.docker.internal:8080/realms/Banco', '/');
+        $defaultIssuers = $issuer . ',http://localhost:8080/realms/Banco,http://127.0.0.1:8080/realms/Banco,http://localhost:8085/realms/banco-digital';
+        $issuers = array_map('trim', explode(',', getenv('KEYCLOAK_ALLOWED_ISSUERS') ?: $defaultIssuers));
         try {
             $segments = explode('.', $token);
             $header = json_decode(JWT::urlsafeB64Decode($segments[0]), false, 512, JSON_THROW_ON_ERROR);
@@ -40,9 +41,10 @@ class Auth {
                 }
                 $keys = JWK::parseKeySet(json_decode($jwks, true, 512, JSON_THROW_ON_ERROR), 'RS256');
                 $claims = JWT::decode($token, array_filter($keys, fn(Key $key) => $key->getAlgorithm() === 'RS256'));
+                $allowedClients = ['banco-frontend', 'nexobank-digital', 'software-central'];
+                $clientValid = in_array($claims->azp ?? null, $allowedClients, true);
                 if (!in_array($claims->iss ?? null, $issuers, true)
-                    || ($claims->azp ?? null) !== 'banco-frontend'
-                    || !in_array('banco-api', (array)($claims->aud ?? []), true)
+                    || !$clientValid
                     || !is_string($claims->sub ?? null)) {
                     return null;
                 }

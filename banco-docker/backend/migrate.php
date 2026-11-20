@@ -41,6 +41,7 @@ try {
     if (isset($db) && $db->inTransaction()) {
         $db->rollBack();
     }
-    fwrite(STDERR, "No se pudo preparar el acceso local. Comprueba la conexión, los permisos CREATE/ALTER y que exista el usuario admin con rol ADMIN.\n");
+    fwrite(STDERR, "Error en inicialización: " . $error->getMessage() . "\n");
+    fwrite(STDERR, "No se pudo preparar el acceso. Comprueba la conexión a la base de datos y permisos.\n");
     exit(1);
 }

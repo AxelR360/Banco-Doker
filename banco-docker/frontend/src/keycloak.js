@@ -1,10 +1,12 @@
 import Keycloak from 'keycloak-js'
 
 const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-const defaultUrl = isLocalhost ? 'http://' + window.location.hostname + ':8085' : null
+const defaultUrl = isLocalhost ? 'http://' + window.location.hostname + ':8080' : null
 const url = import.meta.env.VITE_KEYCLOAK_URL || defaultUrl
+const realm = import.meta.env.VITE_KEYCLOAK_REALM || 'Banco'
+const clientId = import.meta.env.VITE_KEYCLOAK_CLIENT_ID || 'banco-frontend'
 
-export const keycloak = url ? new Keycloak({ url, realm: 'banco-digital', clientId: 'banco-frontend' }) : null
+export const keycloak = url ? new Keycloak({ url, realm, clientId }) : null
 let initialization = null
 
 export function initKeycloak() {
